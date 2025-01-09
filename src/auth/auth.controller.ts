@@ -20,7 +20,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
-  @Post('/user/register')
+  @Post('/register/user')
   @ApiBody({ type: RegisterUserRequestDto })
   @ApiResponse({ status: 200, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -28,7 +28,7 @@ export class AuthController {
     return this.authService.registerUser(registerDto);
   }
 
-  @Post('/device/register')
+  @Post('/register/device')
   @ApiBody({ type: RegisterDeviceRequestDto })
   @ApiResponse({ status: 200, description: 'Device successfully registered' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -44,7 +44,7 @@ export class AuthController {
   }
 
   @UseGuards(UserLocalAuthGuard)
-  @Post('/user/login')
+  @Post('/login/user')
   @ApiBody({ type: LoginUserRequestDto })
   @ApiResponse({ status: 200, description: 'User successfully logged in' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -55,7 +55,7 @@ export class AuthController {
   }
 
   @UseGuards(DeviceLocalAuthGuard)
-  @Post('/device/login')
+  @Post('/login/device')
   @ApiBody({ type: LoginDeviceRequestDto })
   @ApiResponse({ status: 200, description: 'Device successfully logged in' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
