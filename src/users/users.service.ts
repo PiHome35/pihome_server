@@ -12,7 +12,7 @@ export class UsersService {
   async create(createUserParams: CreateUserParams): Promise<User> {
     const newUser = new this.userModel({
       email: createUserParams.email,
-      passwordHash: argon2.hash(createUserParams.password),
+      passwordHash: await argon2.hash(createUserParams.password),
       name: createUserParams.name,
     });
     const savedUser = await newUser.save();
@@ -47,7 +47,7 @@ export class UsersService {
     }
     const user = {
       email: updateUserParams.email ?? oldUser.email,
-      passwordHash: updateUserParams.password ? argon2.hash(updateUserParams.password) : oldUser.passwordHash,
+      passwordHash: updateUserParams.password ? await argon2.hash(updateUserParams.password) : oldUser.passwordHash,
       name: updateUserParams.name ?? oldUser.name,
       familyId: updateUserParams.familyId ?? oldUser.familyId,
     };
@@ -63,7 +63,7 @@ export class UsersService {
     const user = {
       email: updateUserParams.email ?? oldUser.email,
       name: updateUserParams.name ?? oldUser.name,
-      passwordHash: updateUserParams.password ? argon2.hash(updateUserParams.password) : oldUser.passwordHash,
+      passwordHash: updateUserParams.password ? await argon2.hash(updateUserParams.password) : oldUser.passwordHash,
       familyId: updateUserParams.familyId ?? oldUser.familyId,
     };
     const updatedUser = await this.userModel.findOneAndUpdate({ email }, { $set: user }, { new: true }).exec();
