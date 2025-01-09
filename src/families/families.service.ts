@@ -9,7 +9,12 @@ export class FamiliesService {
   constructor(@InjectModel(FamilyEntity.name) private familyModel: Model<FamilyDocument>) {}
 
   async create(createFamilyParams: CreateFamilyParams): Promise<Family> {
-    const newFamily = new this.familyModel(createFamilyParams);
+    const newFamily = new this.familyModel({
+      name: createFamilyParams.name,
+      ownerUserId: createFamilyParams.ownerUserId,
+      userIds: [createFamilyParams.ownerUserId],
+      deviceIds: [],
+    });
     const savedFamily = await newFamily.save();
     return savedFamily.toObject();
   }

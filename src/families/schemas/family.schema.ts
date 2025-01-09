@@ -23,7 +23,7 @@ export class Family {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   ownerUserId: string;
 
   @Prop({ required: true, default: [] })

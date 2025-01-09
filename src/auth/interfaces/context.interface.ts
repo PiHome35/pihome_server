@@ -1,6 +1,6 @@
 import { ClientType } from '../constants/client-type.enum';
 
-export interface ClientContext {
+export interface UserContext {
   readonly clientType: ClientType;
-  readonly clientId: string;
+  readonly id: string;
 }

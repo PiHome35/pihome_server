@@ -5,7 +5,7 @@ export interface User {
   email: string;
   passwordHash: string;
   name: string;
-  familyId: string;
+  familyId?: string;
 }
 
 export interface CreateUserParams {

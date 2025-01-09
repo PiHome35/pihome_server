@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import configuration from './config/configuration';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { DevicesModule } from './devices/devices.module';
+import { PihomeModule } from './pihome/pihome.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { DevicesModule } from './devices/devices.module';
     UsersModule,
     FamiliesModule,
     DevicesModule,
+    PihomeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -11,7 +11,7 @@ import {
 } from './dto/register.dto';
 import { Public } from './decorators/public.decorator';
 import { DeviceLocalAuthGuard } from './guards/device-local-auth.guard';
-import { ClientContext } from './interfaces/context.interface';
+import { UserContext } from './interfaces/context.interface';
 import { ClientType } from './constants/client-type.enum';
 
 @ApiTags('auth')
@@ -36,11 +36,11 @@ export class AuthController {
     @Req() req: any,
     @Body() registerDto: RegisterDeviceRequestDto,
   ): Promise<RegisterDeviceResponseDto> {
-    const currentUser = req.user as ClientContext;
+    const currentUser = req.user as UserContext;
     if (currentUser.clientType !== ClientType.USER) {
       throw new UnauthorizedException('Client is not a user');
     }
-    return this.authService.registerDevice(currentUser.clientId, registerDto);
+    return this.authService.registerDevice(currentUser.id, registerDto);
   }
 
   @UseGuards(UserLocalAuthGuard)
@@ -50,8 +50,8 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginUser(@Req() req: any): Promise<LoginResponseDto> {
-    const currentUser = req.user as ClientContext;
-    return this.authService.loginUser(currentUser.clientId);
+    const currentUser = req.user as UserContext;
+    return this.authService.loginUser(currentUser.id);
   }
 
   @UseGuards(DeviceLocalAuthGuard)
@@ -61,7 +61,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginDevice(@Req() req: any): Promise<LoginResponseDto> {
-    const currentUser = req.user as ClientContext;
-    return this.authService.loginDevice(currentUser.clientId);
+    const currentUser = req.user as UserContext;
+    return this.authService.loginDevice(currentUser.id);
   }
 }

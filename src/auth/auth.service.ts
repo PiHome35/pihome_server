@@ -5,7 +5,7 @@ import * as argon2 from 'argon2';
 import { RegisterDeviceRequestDto, RegisterUserRequestDto, RegisterUserResponseDto } from './dto/register.dto';
 import { LoginResponseDto } from './dto/login.dto';
 import { DevicesService } from 'src/devices/devices.service';
-import { ClientContext } from './interfaces/context.interface';
+import { UserContext } from './interfaces/context.interface';
 import { JwtPayload } from './interfaces/jwt.interface';
 import { ClientType } from './constants/client-type.enum';
 
@@ -17,23 +17,23 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<ClientContext | null> {
+  async validateUser(email: string, password: string): Promise<UserContext | null> {
     const user = await this.usersService.findOneByEmail(email);
     if (user && (await argon2.verify(user.passwordHash, password))) {
       return {
         clientType: ClientType.USER,
-        clientId: user.id,
+        id: user.id,
       };
     }
     return null;
   }
 
-  async validateDevice(clientId: string, clientSecret: string): Promise<ClientContext | null> {
+  async validateDevice(clientId: string, clientSecret: string): Promise<UserContext | null> {
     const device = await this.devicesService.findOne(clientId);
     if (device && (await argon2.verify(device.clientSecretHash, clientSecret))) {
       return {
         clientType: ClientType.DEVICE,
-        clientId: device.clientId,
+        id: device.clientId,
       };
     }
     return null;

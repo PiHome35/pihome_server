@@ -30,7 +30,7 @@ export class User {
   name: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Family' })
-  familyId: string;
+  familyId?: string;
 }
 
 export type UserDocument = HydratedDocument<User>;
