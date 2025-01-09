@@ -31,6 +31,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^8.1.0",
+    "@scalar/nestjs-api-reference": "^0.3.174",
     "@swc/cli": "^0.5.2",
     "@swc/core": "^1.10.4",
     "argon2": "^0.41.1",
