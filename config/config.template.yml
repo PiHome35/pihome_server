@@ -1,8 +1,17 @@
 http:
   port: 3000
 db:
+  postgres:
+    host: localhost
+    port: 5432
+    username: postgres
+    password: postgres
+    database: app
   mongo:
-    uri: mongodb://localhost:27017/
+    host: localhost
+    port: 27017
+    username: mongo
+    password: mongo
     database: app
 jwt:
   secret: jwt-secret

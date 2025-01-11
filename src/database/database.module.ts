@@ -1,15 +1,38 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
-    MongooseModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('db.mongo.uri'),
-        dbName: configService.get<string>('db.mongo.database'),
+        type: 'postgres',
+        host: configService.get<string>('db.postgres.host'),
+        port: configService.get<number>('db.postgres.port'),
+        username: configService.get<string>('db.postgres.username'),
+        password: configService.get<string>('db.postgres.password'),
+        database: configService.get<string>('db.postgres.database'),
+        autoLoadEntities: true,
+        synchronize: process.env.NODE_ENV !== 'production',
       }),
+      inject: [ConfigService],
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        const host = configService.get<string>('db.mongo.host');
+        const port = configService.get<number>('db.mongo.port');
+        const username = configService.get<string>('db.mongo.username');
+        const password = configService.get<string>('db.mongo.password');
+        const database = configService.get<string>('db.mongo.database');
+
+        return {
+          uri: `mongodb://${username}:${password}@${host}:${port}/${database}`,
+          dbName: database,
+        };
+      },
       inject: [ConfigService],
     }),
   ],
