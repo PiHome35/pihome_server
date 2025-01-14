@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { LoginResponseDto } from './login.dto';
 
 export class RegisterUserRequestDto {
@@ -36,6 +36,14 @@ export class RegisterUserResponseDto extends LoginResponseDto {}
 
 export class RegisterDeviceRequestDto {
   @ApiProperty({
+    description: 'The client ID of the device',
+    example: '1234567890',
+  })
+  @IsString()
+  @IsNotEmpty()
+  clientId: string;
+
+  @ApiProperty({
     description: 'The name of the device',
     example: 'My Device',
   })
@@ -45,15 +53,24 @@ export class RegisterDeviceRequestDto {
   name: string;
 
   @ApiProperty({
+    description: 'The device group ID to add the device to. Add to default device group if not provided.',
+    example: '1234567890',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  deviceGroupId?: string;
+}
+
+export class RegisterDeviceResponseDto {
+  @ApiProperty({
     description: 'The client ID of the device',
     example: '1234567890',
   })
   @IsString()
   @IsNotEmpty()
   clientId: string;
-}
 
-export class RegisterDeviceResponseDto {
   @ApiProperty({
     description: 'The client secret of the device',
     example: 'some-client-secret',

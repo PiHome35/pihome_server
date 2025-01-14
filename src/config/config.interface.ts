@@ -3,9 +3,11 @@ export interface HttpConfig {
 }
 
 export interface DatabaseConfig {
+  postgres: {
+    url: string;
+  };
   mongo: {
-    uri: string;
-    database: string;
+    url: string;
   };
 }
 
@@ -15,7 +17,7 @@ export interface JwtConfig {
 }
 
 export interface AppConfig {
-  http: HttpConfig;
   db: DatabaseConfig;
+  http: HttpConfig;
   jwt: JwtConfig;
 }

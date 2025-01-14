@@ -1,10 +1,21 @@
-import { readFileSync } from 'fs';
-import * as yaml from 'js-yaml';
-import { join } from 'path';
 import { AppConfig } from './config.interface';
 
 export default () => {
-  const configFilePath =
-    process.env.NODE_ENV === 'production' ? '../config/config.prod.yml' : '../config/config.dev.yml';
-  return yaml.load(readFileSync(join(__dirname, configFilePath), 'utf8')) as AppConfig;
+  return {
+    db: {
+      postgres: {
+        url: process.env.POSTGRES_URL,
+      },
+      mongo: {
+        url: process.env.MONGO_URL,
+      },
+    },
+    http: {
+      port: parseInt(process.env.PORT, 10),
+    },
+    jwt: {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    },
+  } as AppConfig;
 };

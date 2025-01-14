@@ -18,9 +18,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(payload: JwtPayload): Promise<UserContext> {
     if (payload.clientType === ClientType.USER) {
-      return { clientType: ClientType.USER, id: payload.sub };
+      return { clientType: ClientType.USER, sub: payload.sub };
     } else if (payload.clientType === ClientType.DEVICE) {
-      return { clientType: ClientType.DEVICE, id: payload.sub };
+      return { clientType: ClientType.DEVICE, sub: payload.sub };
     } else {
       throw new UnauthorizedException('Invalid client type');
     }

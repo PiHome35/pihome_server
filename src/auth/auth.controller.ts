@@ -25,7 +25,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async registerUser(@Body() registerDto: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
-    return this.authService.registerUser(registerDto);
+    return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.name);
   }
 
   @Post('/register/device')
@@ -38,9 +38,14 @@ export class AuthController {
   ): Promise<RegisterDeviceResponseDto> {
     const currentUser = req.user as UserContext;
     if (currentUser.clientType !== ClientType.USER) {
-      throw new UnauthorizedException('Client is not a user');
+      throw new UnauthorizedException('Only users can register devices');
     }
-    return this.authService.registerDevice(currentUser.id, registerDto);
+    return this.authService.registerDevice(
+      currentUser.sub,
+      registerDto.clientId,
+      registerDto.name,
+      registerDto.deviceGroupId,
+    );
   }
 
   @UseGuards(UserLocalAuthGuard)
@@ -51,7 +56,7 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginUser(@Req() req: any): Promise<LoginResponseDto> {
     const currentUser = req.user as UserContext;
-    return this.authService.loginUser(currentUser.id);
+    return this.authService.loginAndGetUserJwtToken(currentUser.sub);
   }
 
   @UseGuards(DeviceLocalAuthGuard)
@@ -62,6 +67,6 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginDevice(@Req() req: any): Promise<LoginResponseDto> {
     const currentUser = req.user as UserContext;
-    return this.authService.loginDevice(currentUser.id);
+    return this.authService.loginAndGetDeviceJwtToken(currentUser.sub);
   }
 }

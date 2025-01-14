@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
-import { PihomeController } from './pihome.controller';
-import { PihomeService } from './pihome.service';
-import { FamiliesModule } from 'src/families/families.module';
-import { UsersModule } from 'src/users/users.module';
+import { DevicesService } from './services/devices.service';
+import { DeviceGroupsService } from './services/device-groups.service';
+import { FamiliesService } from './services/families.service';
+import { UsersService } from './services/users.service';
+import { FamiliesController } from './controllers/families.controller';
+import { SpotifyConnectionsService } from './services/spotify-connections.service';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
-  controllers: [PihomeController],
-  providers: [PihomeService],
-  imports: [FamiliesModule, UsersModule],
+  imports: [DatabaseModule],
+  providers: [UsersService, FamiliesService, DeviceGroupsService, DevicesService, SpotifyConnectionsService],
+  controllers: [FamiliesController],
+  exports: [UsersService, FamiliesService, DeviceGroupsService, DevicesService, SpotifyConnectionsService],
 })
 export class PihomeModule {}
