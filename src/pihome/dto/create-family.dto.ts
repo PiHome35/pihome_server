@@ -1,22 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, MaxLength } from 'class-validator';
 import { IsString } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
 
 export class CreateFamilyRequestDto {
-  @ApiProperty({
-    description: 'The name of the family',
-    example: 'My Family',
-  })
-  @IsString()
+  @ApiProperty({ example: 'My Family' })
   @IsNotEmpty()
-  @MaxLength(50)
+  @IsString()
   name: string;
 }
 
 export class CreateFamilyResponseDto {
-  @ApiProperty({
-    description: 'The id of the family',
-    example: '1234567890',
-  })
+  @ApiProperty({ example: 'as213123123' })
+  @IsNotEmpty()
+  @IsString()
   id: string;
 }

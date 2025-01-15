@@ -1,12 +1,26 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Header } from '@nestjs/common';
 import { AppService } from './app.service';
+import { Public } from './auth/decorators/public.decorator';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
+  @Public()
+  @Header('Content-Type', 'text/html')
   getRoot(): string {
-    return 'This is the root of the API';
+    return String.raw`
+<pre style="font-family: monospace; line-height: 1;">
+$$\      $$\           $$\                                                     $$\                     $$$$$$$\  $$\ $$\   $$\                                   
+$$ | $\  $$ |          $$ |                                                    $$ |                    $$  __$$\ \__|$$ |  $$ |                                  
+$$ |$$$\ $$ | $$$$$$\  $$ | $$$$$$$\  $$$$$$\  $$$$$$\$$$$\   $$$$$$\        $$$$$$\    $$$$$$\        $$ |  $$ |$$\ $$ |  $$ | $$$$$$\  $$$$$$\$$$$\   $$$$$$\  
+$$ $$ $$\$$ |$$  __$$\ $$ |$$  _____|$$  __$$\ $$  _$$  _$$\ $$  __$$\       \_$$  _|  $$  __$$\       $$$$$$$  |$$ |$$$$$$$$ |$$  __$$\ $$  _$$  _$$\ $$  __$$\ 
+$$$$  _$$$$ |$$$$$$$$ |$$ |$$ /      $$ /  $$ |$$ / $$ / $$ |$$$$$$$$ |        $$ |    $$ /  $$ |      $$  ____/ $$ |$$  __$$ |$$ /  $$ |$$ / $$ / $$ |$$$$$$$$ |
+$$$  / \$$$ |$$   ____|$$ |$$ |      $$ |  $$ |$$ | $$ | $$ |$$   ____|        $$ |$$\ $$ |  $$ |      $$ |      $$ |$$ |  $$ |$$ |  $$ |$$ | $$ | $$ |$$   ____|
+$$  /   \$$ |\$$$$$$$\ $$ |\$$$$$$$\ \$$$$$$  |$$ | $$ | $$ |\$$$$$$$\         \$$$$  |\$$$$$$  |      $$ |      $$ |$$ |  $$ |\$$$$$$  |$$ | $$ | $$ |\$$$$$$$\ 
+\__/     \__| \_______|\__| \_______| \______/ \__| \__| \__| \_______|         \____/  \______/       \__|      \__|\__|  \__| \______/ \__| \__| \__| \_______|
+</pre>
+`;
   }
 }

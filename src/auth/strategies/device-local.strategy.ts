@@ -14,10 +14,6 @@ export class DeviceLocalStrategy extends PassportStrategy(Strategy, 'device-loca
   }
 
   async validate(clientId: string, clientSecret: string): Promise<UserContext> {
-    const userContext = await this.authService.validateDevice(clientId, clientSecret);
-    if (!userContext) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    return userContext;
+    return this.authService.validateAndGetDeviceContext(clientId, clientSecret);
   }
 }

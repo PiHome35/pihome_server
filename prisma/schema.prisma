@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+model User {
+  id                String             @id @default(uuid())
+  email             String             @unique
+  passwordHash      String             @map("password_hash")
+  name              String
+  familyId          String?            @map("family_id")
+  family            Family?            @relation("FamilyMembers", fields: [familyId], references: [id])
+  ownedFamily       Family?            @relation("FamilyOwner")
+  spotifyConnection SpotifyConnection?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@map("users")
+}
+
+model Family {
+  id                 String              @id @default(uuid())
+  name               String
+  chatModel          String              @map("chat_model")
+  wakeWord           String              @map("wake_word")
+  ownerId            String              @unique @map("owner_id")
+  owner              User                @relation("FamilyOwner", fields: [ownerId], references: [id])
+  users              User[]              @relation("FamilyMembers")
+  deviceGroups       DeviceGroup[]
+  devices            Device[]
+  spotifyConnections SpotifyConnection[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@map("families")
+}
+
+model Device {
+  id               String      @id @default(uuid())
+  clientId         String      @unique @map("client_id")
+  clientSecretHash String      @map("client_secret_hash")
+  name             String
+  isOn             Boolean     @map("is_on")
+  volumePercent    Int         @map("volume_percent")
+  familyId         String      @map("family_id")
+  family           Family      @relation(fields: [familyId], references: [id])
+  deviceGroupId    String      @map("device_group_id")
+  deviceGroup      DeviceGroup @relation(fields: [deviceGroupId], references: [id])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("devices")
+}
+
+model DeviceGroup {
+  id                String             @id @default(uuid())
+  name              String
+  isDefault         Boolean            @map("is_default")
+  isMuted           Boolean            @map("is_muted")
+  familyId          String             @map("family_id")
+  family            Family             @relation(fields: [familyId], references: [id])
+  devices           Device[]
+  spotifyConnection SpotifyConnection?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@map("device_groups")
+}
+
+model SpotifyConnection {
+  id              String       @id @default(uuid())
+  accessToken     String       @map("access_token")
+  refreshToken    String       @map("refresh_token")
+  expiresAt       DateTime     @map("expires_at")
+  spotifyDeviceId String       @map("spotify_device_id")
+  familyId        String       @map("family_id")
+  family          Family       @relation(fields: [familyId], references: [id])
+  ownerId         String       @unique @map("owner_id")
+  owner           User         @relation(fields: [ownerId], references: [id])
+  deviceGroupId   String?      @unique @map("device_group_id")
+  deviceGroup     DeviceGroup? @relation(fields: [deviceGroupId], references: [id])
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("spotify_connections")
+}
