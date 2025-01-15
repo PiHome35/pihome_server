@@ -37,9 +37,6 @@ export class AuthController {
     @Body() registerDto: RegisterDeviceRequestDto,
   ): Promise<RegisterDeviceResponseDto> {
     const currentUser = req.user as UserContext;
-    if (currentUser.clientType !== ClientType.USER) {
-      throw new UnauthorizedException('Only users can register devices');
-    }
     return this.authService.registerDevice(
       currentUser.sub,
       registerDto.clientId,
