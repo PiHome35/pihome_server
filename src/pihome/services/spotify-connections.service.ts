@@ -10,11 +10,13 @@ export class SpotifyConnectionsService {
     refreshToken: string,
     expiresAt: Date,
     spotifyDeviceId: string,
-    familyId: string,
     userId: string,
   ): Promise<SpotifyConnection> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId, familyId }, include: { family: true } });
-    if (!user) {
+    const family = await this.prisma.family.findFirst({
+      where: { users: { some: { id: userId } } },
+      include: { users: true },
+    });
+    if (!family) {
       throw new NotFoundException();
     }
 
@@ -24,8 +26,8 @@ export class SpotifyConnectionsService {
         refreshToken,
         spotifyDeviceId,
         expiresAt,
-        familyId: user.familyId,
-        ownerId: user.id,
+        familyId: family.id,
+        ownerId: userId,
       },
     });
     return spotifyConnection;

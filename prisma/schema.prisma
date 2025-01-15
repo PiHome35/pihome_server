@@ -32,7 +32,6 @@ model Family {
   owner              User                @relation("FamilyOwner", fields: [ownerId], references: [id])
   users              User[]              @relation("FamilyMembers")
   deviceGroups       DeviceGroup[]
-  devices            Device[]
   spotifyConnections SpotifyConnection[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -47,8 +46,6 @@ model Device {
   name             String
   isOn             Boolean     @map("is_on")
   volumePercent    Int         @map("volume_percent")
-  familyId         String      @map("family_id")
-  family           Family      @relation(fields: [familyId], references: [id])
   deviceGroupId    String      @map("device_group_id")
   deviceGroup      DeviceGroup @relation(fields: [deviceGroupId], references: [id])
   createdAt        DateTime    @default(now())

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { DeviceGroup } from 'prisma/generated';
 
@@ -9,7 +9,7 @@ export class DeviceGroupsService {
   async createDeviceGroup(name: string, familyId: string, isDefault: boolean = false): Promise<DeviceGroup> {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
     if (!family) {
-      throw new BadRequestException();
+      throw new NotFoundException();
     }
 
     const deviceGroup = await this.prisma.deviceGroup.create({

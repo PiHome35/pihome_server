@@ -11,7 +11,7 @@ export class FamiliesService {
   async createFamily(name: string, userId: string): Promise<Family> {
     const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { family: true } });
     if (!user) {
-      throw new BadRequestException();
+      throw new NotFoundException();
     }
     if (user.family) {
       throw new BadRequestException();

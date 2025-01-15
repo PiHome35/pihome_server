@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DefaultVolumePercent } from '../constants/volume.constant';
 import { PrismaService } from 'src/database/prisma.service';
 import { Device } from 'prisma/generated';
@@ -7,19 +7,10 @@ import { Device } from 'prisma/generated';
 export class DevicesService {
   constructor(private prisma: PrismaService) {}
 
-  async createDevice(
-    clientId: string,
-    clientSecretHash: string,
-    name: string,
-    familyId: string,
-    deviceGroupId: string,
-  ): Promise<Device> {
-    const family = await this.prisma.family.findUnique({
-      where: { id: familyId, deviceGroups: { some: { id: deviceGroupId } } },
-      include: { deviceGroups: true },
-    });
-    if (!family) {
-      throw new BadRequestException();
+  async createDevice(clientId: string, clientSecretHash: string, name: string, deviceGroupId: string): Promise<Device> {
+    const deviceGroup = await this.prisma.deviceGroup.findUnique({ where: { id: deviceGroupId } });
+    if (!deviceGroup) {
+      throw new NotFoundException();
     }
 
     const device = await this.prisma.device.create({
@@ -29,7 +20,6 @@ export class DevicesService {
         name,
         isOn: true,
         volumePercent: DefaultVolumePercent,
-        familyId: family.id,
         deviceGroupId,
       },
     });

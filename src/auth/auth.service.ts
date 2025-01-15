@@ -89,7 +89,7 @@ export class AuthService {
       deviceGroup = await this.familiesService.getFamilyDefaultDeviceGroup(family.id); // Throws if no default device group
     }
     const clientSecret = generateRandomSecret();
-    await this.devicesService.createDevice(clientId, await argon2.hash(clientSecret), name, family.id, deviceGroup.id);
+    await this.devicesService.createDevice(clientId, await argon2.hash(clientSecret), name, deviceGroup.id);
     return { clientId, clientSecret };
   }
 }
