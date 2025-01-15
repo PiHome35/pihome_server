@@ -19,8 +19,8 @@ import { ClientType } from './constants/client-type.enum';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Public()
   @Post('/register/user')
+  @Public()
   @ApiBody({ type: RegisterUserRequestDto })
   @ApiResponse({ status: 200, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -48,8 +48,8 @@ export class AuthController {
     );
   }
 
-  @UseGuards(UserLocalAuthGuard)
   @Post('/login/user')
+  @UseGuards(UserLocalAuthGuard)
   @ApiBody({ type: LoginUserRequestDto })
   @ApiResponse({ status: 200, description: 'User successfully logged in' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -59,8 +59,8 @@ export class AuthController {
     return this.authService.loginAndGetUserJwtToken(currentUser.sub);
   }
 
-  @UseGuards(DeviceLocalAuthGuard)
   @Post('/login/device')
+  @UseGuards(DeviceLocalAuthGuard)
   @ApiBody({ type: LoginDeviceRequestDto })
   @ApiResponse({ status: 200, description: 'Device successfully logged in' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })

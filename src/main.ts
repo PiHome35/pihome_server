@@ -6,16 +6,17 @@ import { Logger } from '@nestjs/common';
 import { apiReference } from '@scalar/nestjs-api-reference';
 
 async function bootstrap() {
-  const globalPrefix = '/api/v1';
+  const version = 1;
+  const globalPrefix = `/api/v${version}`;
 
   const app = await NestFactory.create(AppModule, { logger: ['log', 'error', 'warn', 'debug', 'verbose'] });
   app.enableCors();
-  app.setGlobalPrefix(globalPrefix);
+  app.setGlobalPrefix(globalPrefix, { exclude: ['/'] });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('PiHome API')
     .setDescription('API for PiHome mobile app and speaker device')
-    .setVersion('1.0')
+    .setVersion(`v${version}`)
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
