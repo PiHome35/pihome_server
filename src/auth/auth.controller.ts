@@ -49,6 +49,7 @@ export class AuthController {
   }
 
   @Post('/login/user')
+  @Public()
   @UseGuards(UserLocalAuthGuard)
   @ApiBody({ type: LoginUserRequestDto })
   @ApiResponse({ status: 200, description: 'User successfully logged in' })
@@ -60,6 +61,7 @@ export class AuthController {
   }
 
   @Post('/login/device')
+  @Public()
   @UseGuards(DeviceLocalAuthGuard)
   @ApiBody({ type: LoginDeviceRequestDto })
   @ApiResponse({ status: 200, description: 'Device successfully logged in' })
