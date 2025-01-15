@@ -6,6 +6,7 @@ export class RegisterUserRequestDto {
   @ApiProperty({
     description: 'The email address of the user',
     example: 'user@example.com',
+    required: true,
   })
   @IsEmail()
   @IsNotEmpty()
@@ -15,6 +16,7 @@ export class RegisterUserRequestDto {
     description: 'The password for the user account',
     minLength: 8,
     example: 'password123',
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -38,6 +40,7 @@ export class RegisterDeviceRequestDto {
   @ApiProperty({
     description: 'The client ID of the device',
     example: '1234567890',
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -46,6 +49,7 @@ export class RegisterDeviceRequestDto {
   @ApiProperty({
     description: 'The name of the device',
     example: 'My Device',
+    required: true,
   })
   @IsString()
   @IsNotEmpty()

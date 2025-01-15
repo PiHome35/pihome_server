@@ -5,6 +5,7 @@ export class LoginUserRequestDto {
   @ApiProperty({
     description: 'The email address of the user',
     example: 'user@example.com',
+    required: true,
   })
   @IsEmail()
   @IsNotEmpty()
@@ -13,6 +14,7 @@ export class LoginUserRequestDto {
   @ApiProperty({
     description: 'The password for the user account',
     example: 'password123',
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -24,6 +26,7 @@ export class LoginDeviceRequestDto {
   @ApiProperty({
     description: 'The client id of the device',
     example: 'some-client-id',
+    required: true,
   })
   @IsString()
   @IsNotEmpty()
@@ -32,6 +35,7 @@ export class LoginDeviceRequestDto {
   @ApiProperty({
     description: 'The client secret of the device',
     example: 'some-client-secret',
+    required: true,
   })
   @IsString()
   @IsNotEmpty()

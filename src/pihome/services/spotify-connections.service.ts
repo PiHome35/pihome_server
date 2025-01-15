@@ -17,7 +17,7 @@ export class SpotifyConnectionsService {
       include: { users: true },
     });
     if (!family) {
-      throw new NotFoundException();
+      throw new NotFoundException('Family not found');
     }
 
     const spotifyConnection = await this.prisma.spotifyConnection.create({

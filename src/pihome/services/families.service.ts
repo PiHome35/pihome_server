@@ -11,10 +11,10 @@ export class FamiliesService {
   async createFamily(name: string, userId: string): Promise<Family> {
     const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { family: true } });
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('User not found');
     }
     if (user.family) {
-      throw new BadRequestException();
+      throw new BadRequestException('User already has a family');
     }
 
     const family = await this.prisma.family.create({
@@ -42,7 +42,7 @@ export class FamiliesService {
   async getFamilyDefaultDeviceGroup(familyId: string): Promise<DeviceGroup> {
     const deviceGroup = await this.prisma.deviceGroup.findFirst({ where: { familyId, isDefault: true } });
     if (!deviceGroup) {
-      throw new NotFoundException();
+      throw new NotFoundException('Default device group of family not found');
     }
     return deviceGroup;
   }
