@@ -1,48 +1,54 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from '../users/users.service';
 import * as argon2 from 'argon2';
-import { RegisterDeviceRequestDto, RegisterUserRequestDto, RegisterUserResponseDto } from './dto/register.dto';
+import { RegisterDeviceResponseDto, RegisterUserResponseDto } from './dto/register.dto';
 import { LoginResponseDto } from './dto/login.dto';
-import { DevicesService } from 'src/devices/devices.service';
-import { ClientContext } from './interfaces/context.interface';
+import { UserContext } from './interfaces/context.interface';
 import { JwtPayload } from './interfaces/jwt.interface';
 import { ClientType } from './constants/client-type.enum';
+import { UsersService } from 'src/pihome/services/users.service';
+import { DevicesService } from 'src/pihome/services/devices.service';
+import { FamiliesService } from 'src/pihome/services/families.service';
+import { generateRandomSecret } from 'src/utils/random.util';
+import { DeviceGroup } from 'prisma/generated';
+import { DeviceGroupsService } from 'src/pihome/services/device-groups.service';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private jwtService: JwtService,
     private usersService: UsersService,
     private devicesService: DevicesService,
-    private jwtService: JwtService,
+    private familiesService: FamiliesService,
+    private deviceGroupsService: DeviceGroupsService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<ClientContext | null> {
-    const user = await this.usersService.findOneByEmail(email);
-    if (user && (await argon2.verify(user.passwordHash, password))) {
+  async validateAndGetUserContext(email: string, password: string): Promise<UserContext> {
+    const user = await this.usersService.getUserByEmail(email);
+    if (await argon2.verify(user.passwordHash, password)) {
       return {
         clientType: ClientType.USER,
-        clientId: user.id,
+        sub: user.id,
       };
     }
-    return null;
+    throw new UnauthorizedException('Invalid email or password');
   }
 
-  async validateDevice(clientId: string, clientSecret: string): Promise<ClientContext | null> {
-    const device = await this.devicesService.findOne(clientId);
-    if (device && (await argon2.verify(device.clientSecretHash, clientSecret))) {
+  async validateAndGetDeviceContext(clientId: string, clientSecret: string): Promise<UserContext> {
+    const device = await this.devicesService.getDeviceByClientId(clientId);
+    if (await argon2.verify(device.clientSecretHash, clientSecret)) {
       return {
         clientType: ClientType.DEVICE,
-        clientId: device.clientId,
+        sub: device.id,
       };
     }
-    return null;
+    throw new UnauthorizedException('Invalid client id or secret');
   }
 
-  async loginUser(userId: string): Promise<LoginResponseDto> {
+  async loginAndGetUserJwtToken(userId: string): Promise<LoginResponseDto> {
     const payload: JwtPayload = {
-      sub: userId,
       clientType: ClientType.USER,
+      sub: userId,
     };
     return {
       accessToken: this.jwtService.sign(payload),
@@ -50,10 +56,10 @@ export class AuthService {
     };
   }
 
-  async loginDevice(clientId: string): Promise<LoginResponseDto> {
+  async loginAndGetDeviceJwtToken(deviceId: string): Promise<LoginResponseDto> {
     const payload: JwtPayload = {
-      sub: clientId,
       clientType: ClientType.DEVICE,
+      sub: deviceId,
     };
     return {
       accessToken: this.jwtService.sign(payload),
@@ -61,20 +67,29 @@ export class AuthService {
     };
   }
 
-  async registerUser(registerDto: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
-    const user = await this.usersService.create(registerDto);
-    return this.loginUser(user.id);
+  async registerUser(email: string, password: string, name: string): Promise<RegisterUserResponseDto> {
+    if (await this.usersService.userExistsWithEmail(email)) {
+      throw new BadRequestException('User with this email already exists');
+    }
+    const user = await this.usersService.createUser(email, await argon2.hash(password), name);
+    return this.loginAndGetUserJwtToken(user.id);
   }
 
-  async registerDevice(userId: string, registerDto: RegisterDeviceRequestDto) {
-    const user = await this.usersService.findOneById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+  async registerDevice(
+    userId: string,
+    clientId: string,
+    name: string,
+    deviceGroupId?: string,
+  ): Promise<RegisterDeviceResponseDto> {
+    const family = await this.usersService.getUserFamily(userId); // Throws if user is not in a family
+    let deviceGroup: DeviceGroup;
+    if (deviceGroupId) {
+      deviceGroup = await this.deviceGroupsService.getDeviceGroup(deviceGroupId); // Throws if device group not found
+    } else {
+      deviceGroup = await this.familiesService.getFamilyDefaultDeviceGroup(family.id); // Throws if no default device group
     }
-    if (!user.familyId) {
-      throw new BadRequestException('User does not have a family');
-    }
-    const device = await this.devicesService.create({ ...registerDto, familyId: user.familyId });
-    return { clientSecret: device.clientSecret };
+    const clientSecret = generateRandomSecret();
+    await this.devicesService.createDevice(clientId, await argon2.hash(clientSecret), name, family.id, deviceGroup.id);
+    return { clientId, clientSecret };
   }
 }
