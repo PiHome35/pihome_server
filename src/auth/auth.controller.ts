@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserLocalAuthGuard } from './guards/user-local-auth.guard';
-import { ApiTags, ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LoginUserRequestDto, LoginResponseDto, LoginDeviceRequestDto } from './dto/login.dto';
 import {
   RegisterDeviceRequestDto,
@@ -23,6 +23,7 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Register a user' })
   @ApiBody({ type: RegisterUserRequestDto })
+  @ApiResponse({ type: RegisterUserResponseDto })
   async registerUser(@Body() registerDto: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
     return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.name);
   }
@@ -30,6 +31,7 @@ export class AuthController {
   @Post('/register/device')
   @ApiOperation({ summary: 'Register a device' })
   @ApiBody({ type: RegisterDeviceRequestDto })
+  @ApiResponse({ type: RegisterDeviceResponseDto })
   async registerDevice(
     @Req() req: any,
     @Body() registerDto: RegisterDeviceRequestDto,
@@ -51,6 +53,7 @@ export class AuthController {
   @UseGuards(UserLocalAuthGuard)
   @ApiOperation({ summary: 'Login a user' })
   @ApiBody({ type: LoginUserRequestDto })
+  @ApiResponse({ type: LoginResponseDto })
   async loginUser(@Req() req: any): Promise<LoginResponseDto> {
     const currentUser = req.user as UserContext;
     return this.authService.loginAndGetUserJwtToken(currentUser.sub);
@@ -61,6 +64,7 @@ export class AuthController {
   @UseGuards(DeviceLocalAuthGuard)
   @ApiOperation({ summary: 'Login a device' })
   @ApiBody({ type: LoginDeviceRequestDto })
+  @ApiResponse({ type: LoginResponseDto })
   async loginDevice(@Req() req: any): Promise<LoginResponseDto> {
     const currentUser = req.user as UserContext;
     return this.authService.loginAndGetDeviceJwtToken(currentUser.sub);
