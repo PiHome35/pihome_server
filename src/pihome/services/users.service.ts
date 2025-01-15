@@ -19,6 +19,11 @@ export class UsersService {
     return user;
   }
 
+  async userExistsWithEmail(email: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    return !!user;
+  }
+
   async getUserFamily(userId: string): Promise<Family> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId, familyId: { not: null } },

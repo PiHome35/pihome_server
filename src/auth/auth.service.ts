@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { RegisterDeviceResponseDto, RegisterUserResponseDto } from './dto/register.dto';
@@ -68,6 +68,9 @@ export class AuthService {
   }
 
   async registerUser(email: string, password: string, name: string): Promise<RegisterUserResponseDto> {
+    if (await this.usersService.userExistsWithEmail(email)) {
+      throw new BadRequestException('User with this email already exists');
+    }
     const user = await this.usersService.createUser(email, await argon2.hash(password), name);
     return this.loginAndGetUserJwtToken(user.id);
   }
@@ -81,7 +84,7 @@ export class AuthService {
     const family = await this.usersService.getUserFamily(userId); // Throws if user is not in a family
     let deviceGroup: DeviceGroup;
     if (deviceGroupId) {
-      deviceGroup = await this.deviceGroupsService.getDeviceGroup(deviceGroupId);
+      deviceGroup = await this.deviceGroupsService.getDeviceGroup(deviceGroupId); // Throws if device group not found
     } else {
       deviceGroup = await this.familiesService.getFamilyDefaultDeviceGroup(family.id); // Throws if no default device group
     }
