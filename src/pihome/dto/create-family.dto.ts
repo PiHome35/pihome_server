@@ -3,14 +3,14 @@ import { IsString } from 'class-validator';
 import { IsNotEmpty } from 'class-validator';
 
 export class CreateFamilyRequestDto {
-  @ApiProperty({ example: 'My Family' })
+  @ApiProperty({ description: 'Family name', example: 'My Family', required: true })
   @IsNotEmpty()
   @IsString()
   name: string;
 }
 
 export class CreateFamilyResponseDto {
-  @ApiProperty({ example: 'as213123123' })
+  @ApiProperty({ description: 'Family id', example: 'as213123123' })
   @IsNotEmpty()
   @IsString()
   id: string;

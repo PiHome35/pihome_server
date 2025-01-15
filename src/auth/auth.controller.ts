@@ -1,7 +1,7 @@
 import { Body, Controller, Post, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserLocalAuthGuard } from './guards/user-local-auth.guard';
-import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { LoginUserRequestDto, LoginResponseDto, LoginDeviceRequestDto } from './dto/login.dto';
 import {
   RegisterDeviceRequestDto,
@@ -21,17 +21,15 @@ export class AuthController {
 
   @Post('/register/user')
   @Public()
+  @ApiOperation({ summary: 'Register a user' })
   @ApiBody({ type: RegisterUserRequestDto })
-  @ApiResponse({ status: 200, description: 'User successfully registered' })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
   async registerUser(@Body() registerDto: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
     return this.authService.registerUser(registerDto.email, registerDto.password, registerDto.name);
   }
 
   @Post('/register/device')
+  @ApiOperation({ summary: 'Register a device' })
   @ApiBody({ type: RegisterDeviceRequestDto })
-  @ApiResponse({ status: 200, description: 'Device successfully registered' })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
   async registerDevice(
     @Req() req: any,
     @Body() registerDto: RegisterDeviceRequestDto,
@@ -51,10 +49,8 @@ export class AuthController {
   @Post('/login/user')
   @Public()
   @UseGuards(UserLocalAuthGuard)
+  @ApiOperation({ summary: 'Login a user' })
   @ApiBody({ type: LoginUserRequestDto })
-  @ApiResponse({ status: 200, description: 'User successfully logged in' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginUser(@Req() req: any): Promise<LoginResponseDto> {
     const currentUser = req.user as UserContext;
     return this.authService.loginAndGetUserJwtToken(currentUser.sub);
@@ -63,10 +59,8 @@ export class AuthController {
   @Post('/login/device')
   @Public()
   @UseGuards(DeviceLocalAuthGuard)
+  @ApiOperation({ summary: 'Login a device' })
   @ApiBody({ type: LoginDeviceRequestDto })
-  @ApiResponse({ status: 200, description: 'Device successfully logged in' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 400, description: 'Bad Request.' })
   async loginDevice(@Req() req: any): Promise<LoginResponseDto> {
     const currentUser = req.user as UserContext;
     return this.authService.loginAndGetDeviceJwtToken(currentUser.sub);

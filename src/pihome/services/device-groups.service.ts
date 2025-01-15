@@ -9,7 +9,7 @@ export class DeviceGroupsService {
   async createDeviceGroup(name: string, familyId: string, isDefault: boolean = false): Promise<DeviceGroup> {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
     if (!family) {
-      throw new NotFoundException();
+      throw new NotFoundException('Family not found');
     }
 
     const deviceGroup = await this.prisma.deviceGroup.create({
@@ -26,7 +26,7 @@ export class DeviceGroupsService {
   async getDeviceGroup(deviceGroupId: string): Promise<DeviceGroup> {
     const deviceGroup = await this.prisma.deviceGroup.findUnique({ where: { id: deviceGroupId } });
     if (!deviceGroup) {
-      throw new NotFoundException();
+      throw new NotFoundException('Device group not found');
     }
     return deviceGroup;
   }
