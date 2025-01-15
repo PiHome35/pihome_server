@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FamiliesService } from '../services/families.service';
 import { CreateFamilyResponseDto } from '../dto/create-family.dto';
 import { CreateFamilyRequestDto } from '../dto/create-family.dto';
@@ -15,7 +15,8 @@ export class FamiliesController {
     private deviceGroupsService: DeviceGroupsService,
   ) {}
 
-  @Post('/create')
+  @Post()
+  @ApiOperation({ summary: 'Create a family' })
   @ApiBody({ type: CreateFamilyRequestDto })
   @ApiResponse({ status: 200, description: 'Family created successfully' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
