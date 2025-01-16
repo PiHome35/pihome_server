@@ -24,10 +24,9 @@ export class SpotifyConnectionsService {
       data: {
         accessToken,
         refreshToken,
-        spotifyDeviceId,
         expiresAt,
+        spotifyDeviceId,
         familyId: family.id,
-        ownerId: userId,
       },
     });
     return spotifyConnection;

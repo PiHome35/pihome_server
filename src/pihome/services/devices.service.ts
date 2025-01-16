@@ -7,11 +7,13 @@ import { Device } from 'prisma/generated';
 export class DevicesService {
   constructor(private prisma: PrismaService) {}
 
-  async createDevice(clientId: string, clientSecretHash: string, name: string, deviceGroupId: string): Promise<Device> {
-    const deviceGroup = await this.prisma.deviceGroup.findUnique({ where: { id: deviceGroupId } });
-    if (!deviceGroup) {
-      throw new NotFoundException('Device group not found');
+  async createDevice(clientId: string, clientSecretHash: string, name: string, familyId: string): Promise<Device> {
+    const family = await this.prisma.family.findUnique({ where: { id: familyId }, include: { devices: true } });
+    if (!family) {
+      throw new NotFoundException('Family not found');
     }
+
+    const isSoundServer = family.devices.length === 0;
 
     const device = await this.prisma.device.create({
       data: {
@@ -19,8 +21,10 @@ export class DevicesService {
         clientSecretHash,
         name,
         isOn: true,
+        isMuted: false,
         volumePercent: DefaultVolumePercent,
-        deviceGroupId,
+        isSoundServer,
+        familyId,
       },
     });
     return device;

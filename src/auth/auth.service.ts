@@ -10,7 +10,6 @@ import { UsersService } from 'src/pihome/services/users.service';
 import { DevicesService } from 'src/pihome/services/devices.service';
 import { FamiliesService } from 'src/pihome/services/families.service';
 import { generateRandomSecret } from 'src/utils/random.util';
-import { DeviceGroup } from 'prisma/generated';
 import { DeviceGroupsService } from 'src/pihome/services/device-groups.service';
 
 @Injectable()
@@ -75,21 +74,10 @@ export class AuthService {
     return this.loginAndGetUserJwtToken(user.id);
   }
 
-  async registerDevice(
-    userId: string,
-    clientId: string,
-    name: string,
-    deviceGroupId?: string,
-  ): Promise<RegisterDeviceResponseDto> {
+  async registerDevice(userId: string, clientId: string, name: string): Promise<RegisterDeviceResponseDto> {
     const family = await this.usersService.getUserFamily(userId); // Throws if user is not in a family
-    let deviceGroup: DeviceGroup;
-    if (deviceGroupId) {
-      deviceGroup = await this.deviceGroupsService.getDeviceGroup(deviceGroupId); // Throws if device group not found
-    } else {
-      deviceGroup = await this.familiesService.getFamilyDefaultDeviceGroup(family.id); // Throws if no default device group
-    }
     const clientSecret = generateRandomSecret();
-    await this.devicesService.createDevice(clientId, await argon2.hash(clientSecret), name, deviceGroup.id);
+    await this.devicesService.createDevice(clientId, await argon2.hash(clientSecret), name, family.id);
     return { clientId, clientSecret };
   }
 }

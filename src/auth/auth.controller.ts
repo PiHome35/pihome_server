@@ -37,12 +37,7 @@ export class AuthController {
     @Body() registerDto: RegisterDeviceRequestDto,
   ): Promise<RegisterDeviceResponseDto> {
     const currentUser = req.user as UserContext;
-    return this.authService.registerDevice(
-      currentUser.sub,
-      registerDto.clientId,
-      registerDto.name,
-      registerDto.deviceGroupId,
-    );
+    return this.authService.registerDevice(currentUser.sub, registerDto.clientId, registerDto.name);
   }
 
   @Post('/login/user')

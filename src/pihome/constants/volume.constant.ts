@@ -1,1 +1,1 @@
-export const DefaultVolumePercent = 50;
+export const DefaultVolumePercent = 100;

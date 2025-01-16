@@ -21,7 +21,6 @@ export class FamiliesService {
       data: {
         name,
         chatModel: DefaultChatModel,
-        wakeWord: DefaultWakeWord,
         ownerId: user.id,
       },
     });
@@ -37,13 +36,5 @@ export class FamiliesService {
   async listFamilyDeviceGroups(familyId: string): Promise<DeviceGroup[]> {
     const deviceGroups = await this.prisma.deviceGroup.findMany({ where: { familyId } });
     return deviceGroups;
-  }
-
-  async getFamilyDefaultDeviceGroup(familyId: string): Promise<DeviceGroup> {
-    const deviceGroup = await this.prisma.deviceGroup.findFirst({ where: { familyId, isDefault: true } });
-    if (!deviceGroup) {
-      throw new NotFoundException('Default device group of family not found');
-    }
-    return deviceGroup;
   }
 }
