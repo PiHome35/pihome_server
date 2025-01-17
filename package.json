@@ -25,6 +25,8 @@
   "dependencies": {
     "@apollo/server": "^4.11.3",
     "@apollo/subgraph": "^2.9.3",
+    "@langchain/community": "^0.3.24",
+    "@langchain/core": "^0.3.30",
     "@nestjs/apollo": "^12.2.2",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.3.0",
