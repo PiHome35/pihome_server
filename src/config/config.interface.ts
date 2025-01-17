@@ -16,8 +16,13 @@ export interface JwtConfig {
   expiresIn: string; // e.g. 60s, 1h, 1d, 1y
 }
 
+export interface SpotifyConfig {
+  clientId: string;
+}
+
 export interface AppConfig {
   db: DatabaseConfig;
   http: HttpConfig;
   jwt: JwtConfig;
+  spotify: SpotifyConfig;
 }

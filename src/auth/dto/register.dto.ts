@@ -55,15 +55,6 @@ export class RegisterDeviceRequestDto {
   @IsNotEmpty()
   @MaxLength(50)
   name: string;
-
-  @ApiProperty({
-    description: 'The device group ID to add the device to. Add to default device group if not provided.',
-    example: '1234567890',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  deviceGroupId?: string;
 }
 
 export class RegisterDeviceResponseDto {

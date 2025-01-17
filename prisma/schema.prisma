@@ -9,80 +9,78 @@ datasource db {
 }
 
 model User {
-  id                String             @id @default(uuid())
-  email             String             @unique
-  passwordHash      String             @map("password_hash")
-  name              String
-  familyId          String?            @map("family_id")
-  family            Family?            @relation("FamilyMembers", fields: [familyId], references: [id])
-  ownedFamily       Family?            @relation("FamilyOwner")
-  spotifyConnection SpotifyConnection?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  familyId     String?  @map("family_id")
+  family       Family?  @relation("FamilyMembers", fields: [familyId], references: [id], onDelete: SetNull)
+  ownedFamily  Family?  @relation("FamilyOwner")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
 model Family {
-  id                 String              @id @default(uuid())
-  name               String
-  chatModel          String              @map("chat_model")
-  wakeWord           String              @map("wake_word")
-  ownerId            String              @unique @map("owner_id")
-  owner              User                @relation("FamilyOwner", fields: [ownerId], references: [id])
-  users              User[]              @relation("FamilyMembers")
-  deviceGroups       DeviceGroup[]
-  spotifyConnections SpotifyConnection[]
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                String             @id @default(uuid())
+  name              String
+  chatModel         String             @map("chat_model")
+  ownerId           String             @unique @map("owner_id")
+  inviteCode        String?            @unique @map("invite_code")
+  owner             User               @relation("FamilyOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  users             User[]             @relation("FamilyMembers")
+  deviceGroups      DeviceGroup[]
+  devices           Device[]
+  spotifyConnection SpotifyConnection?
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
 
   @@map("families")
 }
 
 model Device {
-  id               String      @id @default(uuid())
-  clientId         String      @unique @map("client_id")
-  clientSecretHash String      @map("client_secret_hash")
+  id               String       @id @default(uuid())
+  clientId         String       @unique @map("client_id")
+  clientSecretHash String       @map("client_secret_hash")
   name             String
-  isOn             Boolean     @map("is_on")
-  volumePercent    Int         @map("volume_percent")
-  deviceGroupId    String      @map("device_group_id")
-  deviceGroup      DeviceGroup @relation(fields: [deviceGroupId], references: [id])
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  isOn             Boolean      @map("is_on")
+  isMuted          Boolean      @map("is_muted")
+  volumePercent    Int          @map("volume_percent")
+  isSoundServer    Boolean      @map("is_sound_server")
+  familyId         String       @map("family_id")
+  deviceGroupId    String?      @map("device_group_id")
+  family           Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  deviceGroup      DeviceGroup? @relation(fields: [deviceGroupId], references: [id], onDelete: SetNull)
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
 
   @@map("devices")
 }
 
 model DeviceGroup {
-  id                String             @id @default(uuid())
-  name              String
-  isDefault         Boolean            @map("is_default")
-  isMuted           Boolean            @map("is_muted")
-  familyId          String             @map("family_id")
-  family            Family             @relation(fields: [familyId], references: [id])
-  devices           Device[]
-  spotifyConnection SpotifyConnection?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  familyId  String   @map("family_id")
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  devices   Device[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("device_groups")
 }
 
 model SpotifyConnection {
-  id              String       @id @default(uuid())
-  accessToken     String       @map("access_token")
-  refreshToken    String       @map("refresh_token")
-  expiresAt       DateTime     @map("expires_at")
-  spotifyDeviceId String       @map("spotify_device_id")
-  familyId        String       @map("family_id")
-  family          Family       @relation(fields: [familyId], references: [id])
-  ownerId         String       @unique @map("owner_id")
-  owner           User         @relation(fields: [ownerId], references: [id])
-  deviceGroupId   String?      @unique @map("device_group_id")
-  deviceGroup     DeviceGroup? @relation(fields: [deviceGroupId], references: [id])
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id              String   @id @default(uuid())
+  accessToken     String   @map("access_token")
+  refreshToken    String   @map("refresh_token")
+  expiresIn       Int      @map("expires_in")
+  issuedAt        DateTime @map("issued_at")
+  spotifyDeviceId String   @map("spotify_device_id")
+  familyId        String   @unique @map("family_id")
+  family          Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("spotify_connections")
 }

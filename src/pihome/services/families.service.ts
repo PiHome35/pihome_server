@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DefaultWakeWord } from '../constants/wake-word.constant';
 import { DefaultChatModel } from '../constants/chat-model.constant';
 import { PrismaService } from 'src/database/prisma.service';
 import { DeviceGroup, Family } from 'prisma/generated';
+import { generateRandomSecret } from 'src/utils/random.util';
 
 @Injectable()
 export class FamiliesService {
@@ -21,7 +21,6 @@ export class FamiliesService {
       data: {
         name,
         chatModel: DefaultChatModel,
-        wakeWord: DefaultWakeWord,
         ownerId: user.id,
       },
     });
@@ -39,11 +38,16 @@ export class FamiliesService {
     return deviceGroups;
   }
 
-  async getFamilyDefaultDeviceGroup(familyId: string): Promise<DeviceGroup> {
-    const deviceGroup = await this.prisma.deviceGroup.findFirst({ where: { familyId, isDefault: true } });
-    if (!deviceGroup) {
-      throw new NotFoundException('Default device group of family not found');
+  async createFamilyInviteCode(familyId: string): Promise<string> {
+    const family = await this.prisma.family.findUnique({ where: { id: familyId } });
+    if (!family) {
+      throw new NotFoundException('Family not found');
     }
-    return deviceGroup;
+    family.inviteCode = generateRandomSecret(4);
+    return family.inviteCode;
+  }
+
+  async deleteFamilyInviteCode(familyId: string): Promise<void> {
+    await this.prisma.family.update({ where: { id: familyId }, data: { inviteCode: null } });
   }
 }

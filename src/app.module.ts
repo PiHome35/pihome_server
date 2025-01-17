@@ -7,6 +7,7 @@ import configuration from './config/configuration';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { PihomeModule } from './pihome/pihome.module';
 import { DatabaseModule } from './database/database.module';
+import { SpotifyModule } from './spotify/spotify.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DatabaseModule } from './database/database.module';
     DatabaseModule,
     AuthModule,
     PihomeModule,
+    SpotifyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

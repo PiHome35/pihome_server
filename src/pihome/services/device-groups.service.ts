@@ -6,7 +6,7 @@ import { DeviceGroup } from 'prisma/generated';
 export class DeviceGroupsService {
   constructor(private prisma: PrismaService) {}
 
-  async createDeviceGroup(name: string, familyId: string, isDefault: boolean = false): Promise<DeviceGroup> {
+  async createDeviceGroup(name: string, familyId: string): Promise<DeviceGroup> {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
     if (!family) {
       throw new NotFoundException('Family not found');
@@ -15,8 +15,6 @@ export class DeviceGroupsService {
     const deviceGroup = await this.prisma.deviceGroup.create({
       data: {
         name,
-        isDefault,
-        isMuted: false,
         familyId: family.id,
       },
     });
