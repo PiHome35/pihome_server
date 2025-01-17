@@ -12,13 +12,13 @@ export class CreateSpotifyConnectionRequestDto {
   refreshToken: string;
 
   @ApiProperty({
-    description: 'Spotify access token expires at in Unix timestamp seconds',
-    example: 1710729600,
+    description: 'Lifetime in seconds of the access token',
+    example: 3600,
     required: true,
   })
   @IsNotEmpty()
   @IsNumber()
-  expiresAt: number;
+  expiresIn: number;
 
   @ApiProperty({ description: 'Spotify device id', example: 'aksjdo3iwnvakh234siweuiruqp', required: true })
   @IsNotEmpty()

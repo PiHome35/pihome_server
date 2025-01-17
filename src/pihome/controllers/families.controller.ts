@@ -66,7 +66,8 @@ export class FamiliesController {
     const spotifyConnection = await this.spotifyConnectionsService.createSpotifyConnection(
       createSpotifyConnectionDto.accessToken,
       createSpotifyConnectionDto.refreshToken,
-      new Date(createSpotifyConnectionDto.expiresAt * 1000),
+      createSpotifyConnectionDto.expiresIn,
+      new Date(),
       createSpotifyConnectionDto.spotifyDeviceId,
       currentUser.sub,
     );
