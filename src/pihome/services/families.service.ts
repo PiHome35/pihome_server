@@ -1,10 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { DefaultWakeWord } from '../constants/wake-word.constant';
 import { DefaultChatModel } from '../constants/chat-model.constant';
 import { PrismaService } from 'src/database/prisma.service';
 import { DeviceGroup, Family } from 'prisma/generated';
 import { generateRandomSecret } from 'src/utils/random.util';
-import { CreateFamilyInviteCodeResponseDto } from '../dto/create-family-invite-code.dto';
 
 @Injectable()
 export class FamiliesService {
