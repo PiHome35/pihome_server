@@ -3,6 +3,8 @@ import { DefaultWakeWord } from '../constants/wake-word.constant';
 import { DefaultChatModel } from '../constants/chat-model.constant';
 import { PrismaService } from 'src/database/prisma.service';
 import { DeviceGroup, Family } from 'prisma/generated';
+import { generateRandomSecret } from 'src/utils/random.util';
+import { CreateFamilyInviteCodeResponseDto } from '../dto/create-family-invite-code.dto';
 
 @Injectable()
 export class FamiliesService {
@@ -36,5 +38,18 @@ export class FamiliesService {
   async listFamilyDeviceGroups(familyId: string): Promise<DeviceGroup[]> {
     const deviceGroups = await this.prisma.deviceGroup.findMany({ where: { familyId } });
     return deviceGroups;
+  }
+
+  async createFamilyInviteCode(familyId: string): Promise<string> {
+    const family = await this.prisma.family.findUnique({ where: { id: familyId } });
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+    family.inviteCode = generateRandomSecret(4);
+    return family.inviteCode;
+  }
+
+  async deleteFamilyInviteCode(familyId: string): Promise<void> {
+    await this.prisma.family.update({ where: { id: familyId }, data: { inviteCode: null } });
   }
 }

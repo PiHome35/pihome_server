@@ -8,9 +8,7 @@ import { JwtPayload } from './interfaces/jwt.interface';
 import { ClientType } from './constants/client-type.enum';
 import { UsersService } from 'src/pihome/services/users.service';
 import { DevicesService } from 'src/pihome/services/devices.service';
-import { FamiliesService } from 'src/pihome/services/families.service';
 import { generateRandomSecret } from 'src/utils/random.util';
-import { DeviceGroupsService } from 'src/pihome/services/device-groups.service';
 
 @Injectable()
 export class AuthService {
@@ -18,8 +16,6 @@ export class AuthService {
     private jwtService: JwtService,
     private usersService: UsersService,
     private devicesService: DevicesService,
-    private familiesService: FamiliesService,
-    private deviceGroupsService: DeviceGroupsService,
   ) {}
 
   async validateAndGetUserContext(email: string, password: string): Promise<UserContext> {

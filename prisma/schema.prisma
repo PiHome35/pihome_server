@@ -27,7 +27,7 @@ model Family {
   name              String
   chatModel         String             @map("chat_model")
   ownerId           String             @unique @map("owner_id")
-  inviteCode        String?            @map("invite_code")
+  inviteCode        String?            @unique @map("invite_code")
   owner             User               @relation("FamilyOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   users             User[]             @relation("FamilyMembers")
   deviceGroups      DeviceGroup[]
