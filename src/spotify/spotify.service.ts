@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { SpotifyRefreshAccessTokenResponse } from './interfaces/spotify-api.interface';
-import { RefreshAccessTokenResponse } from './interfaces/internal.interface';
 import { firstValueFrom } from 'rxjs';
+import {
+  SpotifyRefreshAccessTokenRequest,
+  SpotifyRefreshAccessTokenResponse,
+} from './interfaces/spotify-web-api/auth.interface';
+import { RefreshAccessTokenResponse } from './interfaces/internal/auth.interface';
 
 @Injectable()
 export class SpotifyService {
@@ -17,7 +19,7 @@ export class SpotifyService {
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
           client_id: clientId,
-        },
+        } as SpotifyRefreshAccessTokenRequest,
         {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -25,7 +27,6 @@ export class SpotifyService {
         },
       ),
     );
-
     return {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,

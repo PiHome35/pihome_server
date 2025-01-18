@@ -1,5 +1,5 @@
 export interface SpotifyRefreshAccessTokenRequest {
-  grant_type: string;
+  grant_type: 'refresh_token';
   refresh_token: string;
   client_id: string;
 }

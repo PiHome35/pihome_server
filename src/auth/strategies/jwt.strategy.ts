@@ -2,7 +2,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserContext } from '../interfaces/context.interface';
+import { ClientContext } from '../interfaces/context.interface';
 import { JwtPayload } from '../interfaces/jwt.interface';
 import { ClientType } from '../constants/client-type.enum';
 
@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<UserContext> {
+  async validate(payload: JwtPayload): Promise<ClientContext> {
     if (payload.clientType === ClientType.USER) {
       return { clientType: ClientType.USER, sub: payload.sub };
     } else if (payload.clientType === ClientType.DEVICE) {
