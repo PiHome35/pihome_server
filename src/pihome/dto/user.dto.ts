@@ -18,7 +18,7 @@ export class UserResponseDto {
   @Transform(({ value }) => value.toISOString())
   createdAt: Date;
 
-  @ApiProperty({ format: 'date-time', nullable: true })
-  @Transform(({ value }) => (value ? value.toISOString() : null))
-  updatedAt: Date | null;
+  @ApiProperty({ format: 'date-time' })
+  @Transform(({ value }) => value.toISOString())
+  updatedAt: Date;
 }
