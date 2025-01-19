@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { Device, DeviceGroup, Family } from 'prisma/generated';
+import { Device, DeviceGroup, Family } from '@prisma/client';
 
 @Injectable()
 export class DeviceGroupsService {

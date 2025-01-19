@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DefaultChatModel } from '../constants/chat-model.constant';
 import { PrismaService } from 'src/database/prisma.service';
-import { Device, DeviceGroup, Family, SpotifyConnection, User } from 'prisma/generated';
+import { Device, DeviceGroup, Family, SpotifyConnection, User } from '@prisma/client';
 import { ChatModelKey } from '../constants/chat-model.constant';
 import { generateRandomSecret } from 'src/utils/random.util';
 

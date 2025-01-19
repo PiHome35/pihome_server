@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Family, SpotifyConnection } from 'prisma/generated';
+import { Family, SpotifyConnection } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 import { SpotifyService } from 'src/spotify/spotify.service';
 

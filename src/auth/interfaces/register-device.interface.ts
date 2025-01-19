@@ -1,4 +1,4 @@
-import { Device } from 'prisma/generated/edge';
+import { Device } from '@prisma/client';
 
 export interface RegisterDeviceResponse {
   device: Device;

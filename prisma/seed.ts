@@ -13,26 +13,14 @@ async function main() {
         {
           key: 'gpt-4o',
           name: 'GPT-4o',
-          isEnabled: true,
-          maxTokens: 8192,
-          description: 'Optimized version of GPT-4 for specific tasks',
-          pricePerToken: 0.00003, // Example pricing
         },
         {
           key: 'gpt-4o-mini',
           name: 'GPT-4o Mini',
-          isEnabled: true,
-          maxTokens: 4096,
-          description: 'Smaller, faster version of GPT-4o',
-          pricePerToken: 0.000015, // Example pricing
         },
         {
           key: 'gemini-1.5-flash',
           name: 'Gemini 1.5 Flash',
-          isEnabled: true,
-          maxTokens: 32768,
-          description: 'High-speed version of Gemini 1.5 for rapid tasks',
-          pricePerToken: 0.00002, // Example pricing
         },
       ],
       skipDuplicates: true,

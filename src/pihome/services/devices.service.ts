@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { Device, DeviceGroup, Family } from 'prisma/generated';
+import { Device, DeviceGroup, Family } from '@prisma/client';
 import { generateRandomSecret } from 'src/utils/random.util';
 import * as argon2 from 'argon2';
 

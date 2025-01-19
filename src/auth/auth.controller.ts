@@ -9,7 +9,6 @@ import { RegisterUserRequestDto, RegisterUserResponseDto } from './dto/register-
 import { RegisterDeviceRequestDto, RegisterDeviceResponseDto } from './dto/register-device.dto';
 import { LoginUserRequestDto, LoginUserResponseDto } from './dto/login-user.dto';
 import { LoginDeviceRequestDto, LoginDeviceResponseDto } from './dto/login-device.dto';
-import { plainToInstance } from 'class-transformer';
 
 @ApiTags('Auth')
 @Controller('auth')

@@ -1,4 +1,4 @@
-import { User } from 'prisma/generated/edge';
+import { User } from '@prisma/client';
 import { LoginUserResponse } from './login-user.interface';
 
 export interface RegisterUserResponse {
