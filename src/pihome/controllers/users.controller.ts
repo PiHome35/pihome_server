@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, Post, Put, Req } from '@nestjs/common';
-import { ApiBody, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { ClientContext } from 'src/auth/interfaces/context.interface';
 import { plainToInstance } from 'class-transformer';
-import { GetUserResponseDto } from '../dto/user/get-user.dto';
-import { UpdateUserRequestDto, UpdateUserResponseDto } from '../dto/user/update-user.dto';
-import { JoinFamilyResponseDto } from '../dto/user/join-family.dto';
+import { UpdateUserRequestDto } from '../dto/user/update-user.dto';
 import { JoinFamilyRequestDto } from '../dto/user/join-family.dto';
+import { UserResponseDto } from '../dto/user.dto';
+import { FamilyResponseDto } from '../dto/family.dto';
 
 @ApiTags('Users')
 @Controller('me')
@@ -15,26 +15,20 @@ export class UsersController {
 
   @Get()
   @ApiOperation({ summary: 'Get current user' })
-  @ApiOkResponse({ type: GetUserResponseDto })
-  async getUser(@Req() req: any): Promise<GetUserResponseDto> {
+  @ApiOkResponse({ type: UserResponseDto })
+  async getUser(@Req() req: any): Promise<UserResponseDto> {
     const currentUser = req.user as ClientContext;
     const user = await this.usersService.getUser(currentUser.sub);
-    return plainToInstance(GetUserResponseDto, user);
+    return plainToInstance(UserResponseDto, user);
   }
 
   @Put()
   @ApiOperation({ summary: 'Update current user' })
-  @ApiBody({ type: UpdateUserRequestDto })
-  @ApiOkResponse({ type: UpdateUserResponseDto })
-  async updateUser(@Req() req: any, @Body() updateUserDto: UpdateUserRequestDto): Promise<UpdateUserResponseDto> {
+  @ApiOkResponse({ type: UserResponseDto })
+  async updateUser(@Req() req: any, @Body() body: UpdateUserRequestDto): Promise<UserResponseDto> {
     const currentUser = req.user as ClientContext;
-    const user = await this.usersService.updateUser(
-      currentUser.sub,
-      updateUserDto.name,
-      updateUserDto.email,
-      updateUserDto.password,
-    );
-    return plainToInstance(UpdateUserResponseDto, user);
+    const user = await this.usersService.updateUser(currentUser.sub, body.name, body.email, body.password);
+    return plainToInstance(UserResponseDto, user);
   }
 
   @Delete()
@@ -47,12 +41,11 @@ export class UsersController {
 
   @Post('join-family')
   @ApiOperation({ summary: 'Join a family' })
-  @ApiBody({ type: JoinFamilyRequestDto })
-  @ApiOkResponse({ type: JoinFamilyResponseDto })
-  async joinFamily(@Req() req: any, @Body() joinFamilyDto: JoinFamilyRequestDto): Promise<JoinFamilyResponseDto> {
+  @ApiOkResponse({ type: FamilyResponseDto })
+  async joinFamily(@Req() req: any, @Body() body: JoinFamilyRequestDto): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
-    const family = await this.usersService.joinFamily(currentUser.sub, joinFamilyDto.code);
-    return plainToInstance(JoinFamilyResponseDto, family);
+    const family = await this.usersService.joinFamily(currentUser.sub, body.code);
+    return plainToInstance(FamilyResponseDto, family);
   }
 
   @Post('leave-family')

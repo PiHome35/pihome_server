@@ -1,6 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { UserResponseDto } from '../user.dto';
 
 export class UpdateUserRequestDto {
   @ApiPropertyOptional()
@@ -21,5 +20,3 @@ export class UpdateUserRequestDto {
   @IsString()
   password?: string;
 }
-
-export class UpdateUserResponseDto extends UserResponseDto {}

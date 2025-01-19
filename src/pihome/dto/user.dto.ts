@@ -14,11 +14,11 @@ export class UserResponseDto {
   @ApiProperty({ nullable: true })
   familyId: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ format: 'date-time' })
   @Transform(({ value }) => value.toISOString())
   createdAt: Date;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ format: 'date-time', nullable: true })
   @Transform(({ value }) => (value ? value.toISOString() : null))
   updatedAt: Date | null;
 }

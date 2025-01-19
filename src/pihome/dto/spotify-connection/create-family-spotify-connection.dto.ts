@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsString } from 'class-validator';
-import { SpotifyConnectionResponseDto } from '../spotify-connection.dto';
 
 export class CreateFamilySpotifyConnectionRequestDto {
   @ApiProperty()
@@ -23,5 +22,3 @@ export class CreateFamilySpotifyConnectionRequestDto {
   @IsString()
   spotifyDeviceId: string;
 }
-
-export class CreateFamilySpotifyConnectionResponseDto extends SpotifyConnectionResponseDto {}

@@ -10,17 +10,17 @@ import {
   Put,
   Req,
 } from '@nestjs/common';
-import { ApiBody, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FamiliesService } from '../services/families.service';
 import { ClientContext } from 'src/auth/interfaces/context.interface';
 import { plainToInstance } from 'class-transformer';
 import { UsersService } from '../services/users.service';
-import { CreateFamilyRequestDto, CreateFamilyResponseDto } from '../dto/family/create-family.dto';
-import { GetFamilyResponseDto } from '../dto/family/get-family.dto';
-import { UpdateFamilyRequestDto, UpdateFamilyResponseDto } from '../dto/family/update-family.dto';
+import { CreateFamilyRequestDto } from '../dto/family/create-family.dto';
+import { UpdateFamilyRequestDto } from '../dto/family/update-family.dto';
 import { ListFamilyUsersResponseDto } from '../dto/family/list-family-users.dto';
 import { UserResponseDto } from '../dto/user.dto';
 import { CreateFamilyInviteCodeResponseDto } from '../dto/family/create-family-invite-code.dto';
+import { FamilyResponseDto } from '../dto/family.dto';
 
 @ApiTags('Families')
 @Controller('me/family')
@@ -32,32 +32,30 @@ export class FamiliesController {
 
   @Post()
   @ApiOperation({ summary: 'Create a family' })
-  @ApiBody({ type: CreateFamilyRequestDto })
-  @ApiOkResponse({ type: CreateFamilyResponseDto })
-  async createFamily(@Req() req: any, @Body() body: CreateFamilyRequestDto): Promise<CreateFamilyResponseDto> {
+  @ApiCreatedResponse({ type: FamilyResponseDto })
+  async createFamily(@Req() req: any, @Body() body: CreateFamilyRequestDto): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.familiesService.createFamily(body.name, currentUser.sub);
-    return plainToInstance(CreateFamilyResponseDto, family);
+    return plainToInstance(FamilyResponseDto, family);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get current user family' })
-  @ApiOkResponse({ type: GetFamilyResponseDto })
-  async getFamily(@Req() req: any): Promise<GetFamilyResponseDto> {
+  @ApiOkResponse({ type: FamilyResponseDto })
+  async getFamily(@Req() req: any): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
-    return plainToInstance(GetFamilyResponseDto, family);
+    return plainToInstance(FamilyResponseDto, family);
   }
 
   @Put()
   @ApiOperation({ summary: 'Update current user family' })
-  @ApiBody({ type: UpdateFamilyRequestDto })
-  @ApiOkResponse({ type: UpdateFamilyResponseDto })
-  async updateFamily(@Req() req: any, @Body() body: UpdateFamilyRequestDto): Promise<UpdateFamilyResponseDto> {
+  @ApiOkResponse({ type: FamilyResponseDto })
+  async updateFamily(@Req() req: any, @Body() body: UpdateFamilyRequestDto): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
     const updatedFamily = await this.familiesService.updateFamily(family.id, body.name, body.chatModel);
-    return plainToInstance(UpdateFamilyResponseDto, updatedFamily);
+    return plainToInstance(FamilyResponseDto, updatedFamily);
   }
 
   @Delete()
@@ -78,8 +76,9 @@ export class FamiliesController {
   async listFamilyUsers(@Req() req: any): Promise<ListFamilyUsersResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
-    const users = plainToInstance(UserResponseDto, await this.familiesService.listFamilyUsers(family.id));
-    return plainToInstance(ListFamilyUsersResponseDto, { users });
+    return plainToInstance(ListFamilyUsersResponseDto, {
+      users: await this.familiesService.listFamilyUsers(family.id),
+    });
   }
 
   @Get('users/:userId')
@@ -109,7 +108,7 @@ export class FamiliesController {
   }
 
   @Delete('invite-code')
-  @ApiOperation({ summary: 'Delete a family invite code' })
+  @ApiOperation({ summary: 'Delete family invite code' })
   @ApiNoContentResponse()
   async deleteFamilyInviteCode(@Req() req: any): Promise<void> {
     const currentUser = req.user as ClientContext;
