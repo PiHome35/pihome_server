@@ -16,7 +16,7 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Get current user' })
   @ApiOkResponse({ type: GetUserResponseDto })
-  async getCurrentUser(@Req() req: any): Promise<GetUserResponseDto> {
+  async getUser(@Req() req: any): Promise<GetUserResponseDto> {
     const currentUser = req.user as ClientContext;
     const user = await this.usersService.getUser(currentUser.sub);
     return plainToInstance(GetUserResponseDto, user);

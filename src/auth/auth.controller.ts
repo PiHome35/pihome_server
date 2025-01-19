@@ -20,28 +20,17 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Register a user' })
   @ApiCreatedResponse({ type: RegisterUserResponseDto })
-  async registerUser(@Body() registerDto: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
-    const registerUserResponse = await this.authService.registerUser(
-      registerDto.email,
-      registerDto.password,
-      registerDto.name,
-    );
+  async registerUser(@Body() body: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
+    const registerUserResponse = await this.authService.registerUser(body.email, body.password, body.name);
     return plainToInstance(RegisterUserResponseDto, registerUserResponse);
   }
 
   @Post('/register/device')
   @ApiOperation({ summary: 'Register a device' })
   @ApiCreatedResponse({ type: RegisterDeviceResponseDto })
-  async registerDevice(
-    @Req() req: any,
-    @Body() registerDto: RegisterDeviceRequestDto,
-  ): Promise<RegisterDeviceResponseDto> {
+  async registerDevice(@Req() req: any, @Body() body: RegisterDeviceRequestDto): Promise<RegisterDeviceResponseDto> {
     const currentUser = req.user as ClientContext;
-    const registerDeviceResponse = await this.authService.registerDevice(
-      currentUser.sub,
-      registerDto.clientId,
-      registerDto.name,
-    );
+    const registerDeviceResponse = await this.authService.registerDevice(currentUser.sub, body.clientId, body.name);
     return plainToInstance(RegisterDeviceResponseDto, registerDeviceResponse);
   }
 
