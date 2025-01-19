@@ -79,17 +79,20 @@ export class UsersService {
     return !!user;
   }
 
-  async joinFamily(userId: string, code: string): Promise<string> {
+  async joinFamily(userId: string, code: string): Promise<Family> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+    if (user.familyId) {
+      throw new BadRequestException('User is already in a family');
     }
     const family = await this.prisma.family.findUnique({ where: { inviteCode: code } });
     if (!family) {
       throw new NotFoundException('Invalid invite code');
     }
     await this.prisma.user.update({ where: { id: userId }, data: { familyId: family.id } });
-    return family.id;
+    return family;
   }
 
   async leaveFamily(userId: string): Promise<void> {
