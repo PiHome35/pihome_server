@@ -4,7 +4,6 @@ import { SpotifyConnectionsService } from '../services/spotify-connections.servi
 import { CreateFamilySpotifyConnectionRequestDto } from '../dto/spotify-connection/create-family-spotify-connection.dto';
 import { ClientContext } from 'src/auth/interfaces/context.interface';
 import { UsersService } from '../services/users.service';
-import { plainToInstance } from 'class-transformer';
 import { FamiliesService } from '../services/families.service';
 import { SpotifyConnectionResponseDto } from '../dto/spotify-connection.dto';
 
@@ -33,7 +32,7 @@ export class SpotifyConnectionsController {
       body.spotifyDeviceId,
       family.id,
     );
-    return plainToInstance(SpotifyConnectionResponseDto, spotifyConnection);
+    return new SpotifyConnectionResponseDto(spotifyConnection);
   }
 
   @Get()
@@ -43,7 +42,7 @@ export class SpotifyConnectionsController {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
     const spotifyConnection = await this.familiesService.getFamilySpotifyConnection(family.id);
-    return plainToInstance(SpotifyConnectionResponseDto, spotifyConnection);
+    return new SpotifyConnectionResponseDto(spotifyConnection);
   }
 
   @Delete()

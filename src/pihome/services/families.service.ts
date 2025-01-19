@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { DefaultChatModel } from '../constants/chat-model.constant';
 import { PrismaService } from 'src/database/prisma.service';
 import { Device, DeviceGroup, Family, SpotifyConnection, User } from 'prisma/generated';
+import { ChatModelKey } from '../constants/chat-model.constant';
 import { generateRandomSecret } from 'src/utils/random.util';
 
 @Injectable()
@@ -16,10 +17,14 @@ export class FamiliesService {
     if (user.familyId) {
       throw new BadRequestException('User already belongs to a family');
     }
+    const defaultChatModel = await this.prisma.chatModel.findUnique({ where: { key: DefaultChatModel } });
+    if (!defaultChatModel) {
+      throw new NotFoundException('Chat model not found');
+    }
     const family = await this.prisma.family.create({
       data: {
         name,
-        chatModel: DefaultChatModel,
+        chatModelId: defaultChatModel.id,
         ownerId: user.id,
       },
     });
@@ -61,12 +66,19 @@ export class FamiliesService {
     return spotifyConnection;
   }
 
-  async updateFamily(familyId: string, name?: string, chatModel?: string): Promise<Family> {
+  async updateFamily(familyId: string, name?: string, chatModelKey?: ChatModelKey): Promise<Family> {
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
     if (!family) {
       throw new NotFoundException('Family not found');
     }
-    const updatedFamily = await this.prisma.family.update({ where: { id: familyId }, data: { name, chatModel } });
+    const chatModel = await this.prisma.chatModel.findUnique({ where: { key: chatModelKey } });
+    if (!chatModel) {
+      throw new NotFoundException('Chat model not found');
+    }
+    const updatedFamily = await this.prisma.family.update({
+      where: { id: familyId },
+      data: { name, chatModelId: chatModel.id },
+    });
     return updatedFamily;
   }
 

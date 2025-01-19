@@ -6,7 +6,6 @@ import { ClientContext } from 'src/auth/interfaces/context.interface';
 import { UsersService } from '../services/users.service';
 import { FamiliesService } from '../services/families.service';
 import { DeviceResponseDto } from '../dto/device.dto';
-import { plainToInstance } from 'class-transformer';
 import { UpdateFamilyDeviceRequestDto } from '../dto/device/update-family-device.dto';
 
 @ApiTags('Devices')
@@ -24,9 +23,8 @@ export class DevicesController {
   async listFamilyDevices(@Req() req: any): Promise<ListFamilyDevicesResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
-    return plainToInstance(ListFamilyDevicesResponseDto, {
-      devices: await this.familiesService.listFamilyDevices(family.id),
-    });
+    const devices = await this.familiesService.listFamilyDevices(family.id);
+    return new ListFamilyDevicesResponseDto({ devices });
   }
 
   @Get(':deviceId')
@@ -40,7 +38,7 @@ export class DevicesController {
     if (!device) {
       throw new NotFoundException('Device not found');
     }
-    return plainToInstance(DeviceResponseDto, device);
+    return new DeviceResponseDto(device);
   }
 
   @Put(':deviceId')
@@ -59,7 +57,7 @@ export class DevicesController {
       throw new NotFoundException('Device not found');
     }
     const updatedDevice = await this.devicesService.updateDevice(deviceId, body.name);
-    return plainToInstance(DeviceResponseDto, updatedDevice);
+    return new DeviceResponseDto(updatedDevice);
   }
 
   @Delete(':deviceId')

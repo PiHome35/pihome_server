@@ -6,4 +6,8 @@ export class ListFamilyDevicesResponseDto {
   @ApiProperty({ type: [DeviceResponseDto] })
   @Type(() => DeviceResponseDto)
   devices: DeviceResponseDto[];
+
+  constructor(partial: Partial<ListFamilyDevicesResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

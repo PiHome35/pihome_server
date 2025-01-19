@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Put, Req
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DeviceGroupsService } from '../services/device-groups.service';
 import { DeviceGroupResponseDto } from '../dto/device-group.dto';
-import { plainToInstance } from 'class-transformer';
 import { ClientContext } from 'src/auth/interfaces/context.interface';
 import { CreateFamilyDeviceGroupRequestDto } from '../dto/device-group/create-family-device-group.dto';
 import { UsersService } from '../services/users.service';
@@ -37,7 +36,7 @@ export class DeviceGroupsController {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
     const deviceGroup = await this.deviceGroupsService.createDeviceGroup(body.name, family.id);
-    return plainToInstance(DeviceGroupResponseDto, deviceGroup);
+    return new DeviceGroupResponseDto(deviceGroup);
   }
 
   @Get()
@@ -46,9 +45,8 @@ export class DeviceGroupsController {
   async listFamilyDeviceGroups(@Req() req: any): Promise<ListFamilyDeviceGroupsResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
-    return plainToInstance(ListFamilyDeviceGroupsResponseDto, {
-      deviceGroups: await this.familiesService.listFamilyDeviceGroups(family.id),
-    });
+    const deviceGroups = await this.familiesService.listFamilyDeviceGroups(family.id);
+    return new ListFamilyDeviceGroupsResponseDto({ deviceGroups });
   }
 
   @Get(':deviceGroupId')
@@ -65,7 +63,7 @@ export class DeviceGroupsController {
     if (!deviceGroup) {
       throw new NotFoundException('Device group not found');
     }
-    return plainToInstance(DeviceGroupResponseDto, deviceGroup);
+    return new DeviceGroupResponseDto(deviceGroup);
   }
 
   @Put(':deviceGroupId')
@@ -84,7 +82,7 @@ export class DeviceGroupsController {
       throw new NotFoundException('Device group not found');
     }
     const updatedDeviceGroup = await this.deviceGroupsService.updateDeviceGroup(deviceGroupId, body.name);
-    return plainToInstance(DeviceGroupResponseDto, updatedDeviceGroup);
+    return new DeviceGroupResponseDto(updatedDeviceGroup);
   }
 
   @Delete(':deviceGroupId')
@@ -116,9 +114,8 @@ export class DeviceGroupsController {
     if (!deviceGroup) {
       throw new NotFoundException('Device group not found');
     }
-    return plainToInstance(AddFamilyDeviceGroupDevicesResponseDto, {
-      devices: await this.deviceGroupsService.addDevicesToDeviceGroup(deviceGroupId, body.deviceIds),
-    });
+    const devices = await this.deviceGroupsService.addDevicesToDeviceGroup(deviceGroupId, body.deviceIds);
+    return new AddFamilyDeviceGroupDevicesResponseDto({ devices });
   }
 
   @Post(':deviceGroupId/devices/remove')
@@ -136,8 +133,7 @@ export class DeviceGroupsController {
     if (!deviceGroup) {
       throw new NotFoundException('Device group not found');
     }
-    return plainToInstance(RemoveFamilyDeviceGroupDevicesResponseDto, {
-      devices: await this.deviceGroupsService.removeDevicesFromDeviceGroup(deviceGroupId, body.deviceIds),
-    });
+    const devices = await this.deviceGroupsService.removeDevicesFromDeviceGroup(deviceGroupId, body.deviceIds);
+    return new RemoveFamilyDeviceGroupDevicesResponseDto({ devices });
   }
 }

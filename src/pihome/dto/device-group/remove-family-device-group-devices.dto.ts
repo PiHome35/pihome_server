@@ -16,4 +16,8 @@ export class RemoveFamilyDeviceGroupDevicesResponseDto {
   @ApiProperty({ type: [DeviceResponseDto] })
   @Type(() => DeviceResponseDto)
   devices: DeviceResponseDto[];
+
+  constructor(partial: Partial<RemoveFamilyDeviceGroupDevicesResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

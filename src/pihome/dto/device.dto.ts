@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Exclude, Transform } from 'class-transformer';
 
 export class DeviceResponseDto {
   @ApiProperty()
@@ -7,6 +7,9 @@ export class DeviceResponseDto {
 
   @ApiProperty()
   clientId: string;
+
+  @Exclude()
+  clientSecretHash: string;
 
   @ApiProperty()
   name: string;
@@ -36,4 +39,8 @@ export class DeviceResponseDto {
   @ApiProperty({ format: 'date-time' })
   @Transform(({ value }) => value.toISOString())
   updatedAt: Date;
+
+  constructor(partial: Partial<DeviceResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

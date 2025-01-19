@@ -10,7 +10,7 @@ import { UsersController } from './controllers/users.controller';
 import { SpotifyModule } from 'src/spotify/spotify.module';
 import { SpotifyConnectionsController } from './controllers/spotify-connections.controller';
 import { DevicesController } from './controllers/devices.controller';
-import { DeviceGroupsController } from './controllers/device-groups.controller.dto';
+import { DeviceGroupsController } from './controllers/device-groups.controller';
 
 @Module({
   imports: [DatabaseModule, SpotifyModule],

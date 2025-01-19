@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ChatModel } from 'src/pihome/constants/chat-model.constant';
+import { ChatModelKey } from 'src/pihome/constants/chat-model.constant';
 
 export class UpdateFamilyRequestDto {
   @ApiPropertyOptional()
@@ -9,9 +9,9 @@ export class UpdateFamilyRequestDto {
   @IsString()
   name?: string;
 
-  @ApiPropertyOptional({ enum: ChatModel })
+  @ApiPropertyOptional({ enum: ChatModelKey })
   @IsOptional()
   @IsNotEmpty()
-  @IsEnum(ChatModel)
-  chatModel?: ChatModel;
+  @IsEnum(ChatModelKey)
+  chatModelKey?: ChatModelKey;
 }

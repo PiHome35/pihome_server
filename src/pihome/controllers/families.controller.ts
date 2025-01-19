@@ -36,7 +36,7 @@ export class FamiliesController {
   async createFamily(@Req() req: any, @Body() body: CreateFamilyRequestDto): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.familiesService.createFamily(body.name, currentUser.sub);
-    return plainToInstance(FamilyResponseDto, family);
+    return new FamilyResponseDto(family);
   }
 
   @Get()
@@ -45,7 +45,7 @@ export class FamiliesController {
   async getFamily(@Req() req: any): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
-    return plainToInstance(FamilyResponseDto, family);
+    return new FamilyResponseDto(family);
   }
 
   @Put()
@@ -54,8 +54,8 @@ export class FamiliesController {
   async updateFamily(@Req() req: any, @Body() body: UpdateFamilyRequestDto): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
-    const updatedFamily = await this.familiesService.updateFamily(family.id, body.name, body.chatModel);
-    return plainToInstance(FamilyResponseDto, updatedFamily);
+    const updatedFamily = await this.familiesService.updateFamily(family.id, body.name, body.chatModelKey);
+    return new FamilyResponseDto(updatedFamily);
   }
 
   @Delete()
@@ -76,9 +76,8 @@ export class FamiliesController {
   async listFamilyUsers(@Req() req: any): Promise<ListFamilyUsersResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.getUserFamily(currentUser.sub);
-    return plainToInstance(ListFamilyUsersResponseDto, {
-      users: await this.familiesService.listFamilyUsers(family.id),
-    });
+    const users = await this.familiesService.listFamilyUsers(family.id);
+    return new ListFamilyUsersResponseDto({ users });
   }
 
   @Get('users/:userId')
@@ -91,7 +90,7 @@ export class FamiliesController {
     if (user.familyId !== family.id) {
       throw new NotFoundException('User not found');
     }
-    return plainToInstance(UserResponseDto, user);
+    return new UserResponseDto(user);
   }
 
   @Post('invite-code')
@@ -103,8 +102,8 @@ export class FamiliesController {
     if (family.ownerId !== currentUser.sub) {
       throw new ForbiddenException('Current user is not the owner of the family');
     }
-    const inviteCode = await this.familiesService.createFamilyInviteCode(family.id);
-    return plainToInstance(CreateFamilyInviteCodeResponseDto, { code: inviteCode });
+    const code = await this.familiesService.createFamilyInviteCode(family.id);
+    return new CreateFamilyInviteCodeResponseDto({ code });
   }
 
   @Delete('invite-code')

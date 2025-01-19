@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { ChatModel } from '../constants/chat-model.constant';
 
 export class FamilyResponseDto {
   @ApiProperty()
@@ -9,8 +8,8 @@ export class FamilyResponseDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty({ enum: ChatModel })
-  chatModel: ChatModel;
+  @ApiProperty({ nullable: true })
+  chatModelId: string | null;
 
   @ApiProperty()
   ownerId: string;
@@ -25,4 +24,8 @@ export class FamilyResponseDto {
   @ApiProperty({ format: 'date-time' })
   @Transform(({ value }) => value.toISOString())
   updatedAt: Date;
+
+  constructor(partial: Partial<FamilyResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

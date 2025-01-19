@@ -14,9 +14,9 @@ export class SpotifyConnectionResponseDto {
   @ApiProperty()
   expiresIn: number;
 
-  @ApiProperty()
+  @ApiProperty({ format: 'date-time' })
   @Transform(({ value }) => value.toISOString())
-  issuedAt: string;
+  issuedAt: Date;
 
   @ApiProperty()
   spotifyDeviceId: string;
@@ -31,4 +31,8 @@ export class SpotifyConnectionResponseDto {
   @ApiProperty({ format: 'date-time' })
   @Transform(({ value }) => value.toISOString())
   updatedAt: Date;
+
+  constructor(partial: Partial<SpotifyConnectionResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

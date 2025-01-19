@@ -18,4 +18,8 @@ export class DeviceGroupResponseDto {
   @ApiProperty({ format: 'date-time' })
   @Transform(({ value }) => value.toISOString())
   updatedAt: Date;
+
+  constructor(partial: Partial<DeviceGroupResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

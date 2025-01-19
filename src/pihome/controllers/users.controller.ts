@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, Post, Put, Req } from '@nestjs/common';
 import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { ClientContext } from 'src/auth/interfaces/context.interface';
-import { plainToInstance } from 'class-transformer';
 import { UpdateUserRequestDto } from '../dto/user/update-user.dto';
 import { JoinFamilyRequestDto } from '../dto/user/join-family.dto';
 import { UserResponseDto } from '../dto/user.dto';
@@ -19,7 +18,7 @@ export class UsersController {
   async getUser(@Req() req: any): Promise<UserResponseDto> {
     const currentUser = req.user as ClientContext;
     const user = await this.usersService.getUser(currentUser.sub);
-    return plainToInstance(UserResponseDto, user);
+    return new UserResponseDto(user);
   }
 
   @Put()
@@ -28,7 +27,7 @@ export class UsersController {
   async updateUser(@Req() req: any, @Body() body: UpdateUserRequestDto): Promise<UserResponseDto> {
     const currentUser = req.user as ClientContext;
     const user = await this.usersService.updateUser(currentUser.sub, body.name, body.email, body.password);
-    return plainToInstance(UserResponseDto, user);
+    return new UserResponseDto(user);
   }
 
   @Delete()
@@ -45,7 +44,7 @@ export class UsersController {
   async joinFamily(@Req() req: any, @Body() body: JoinFamilyRequestDto): Promise<FamilyResponseDto> {
     const currentUser = req.user as ClientContext;
     const family = await this.usersService.joinFamily(currentUser.sub, body.code);
-    return plainToInstance(FamilyResponseDto, family);
+    return new FamilyResponseDto(family);
   }
 
   @Post('leave-family')
