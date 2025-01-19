@@ -1,0 +1,50 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type ChatDto {
+  createdAt: DateTime!
+  familyId: String!
+  id: String!
+  latestMessage: MessageDto
+  name: String!
+  updatedAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type MessageDto {
+  chatId: String!
+  content: String!
+  createdAt: DateTime!
+  id: String!
+  senderId: String!
+}
+
+type Mutation {
+  addMessage(chatId: String!, content: String!): MessageDto!
+  createNewChat(familyId: String!): ChatDto!
+}
+
+type NewChatDto {
+  id: String!
+  name: String!
+}
+
+input PaginationDto {
+  limit: Int! = 20
+  skip: Int! = 0
+}
+
+type Query {
+  getAllChatsWithFamilyId(familyId: String!, pagination: PaginationDto): [ChatDto!]!
+  getChatMessages(chatId: String!, pagination: PaginationDto): [MessageDto!]!
+}
+
+type Subscription {
+  chatCreated: NewChatDto!
+  messageAdded(chatId: String!): MessageDto
+}

@@ -1,7 +1,9 @@
+import { ObjectId } from 'mongodb';
+
 export interface Message {
-  _id: string;
+  id: string;
   senderId: string;
   content: string;
   createdAt: Date;
-  updatedAt: Date;
+  chatId: string;
 }

@@ -1,10 +1,10 @@
 import { Message } from './message.interface';
 
 export interface Chat {
-  _id: string;
+  id?: string;
   familyId: string;
   name: string;
-  messages: Message[];
+  latestMessageId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
