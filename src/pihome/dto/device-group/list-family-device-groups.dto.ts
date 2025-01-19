@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { DeviceGroupResponseDto } from '../device-group.dto';
-import { Type } from 'class-transformer/types/decorators';
+import { Type } from 'class-transformer';
 
 export class ListFamilyDeviceGroupsResponseDto {
   @ApiProperty({ type: [DeviceGroupResponseDto] })
