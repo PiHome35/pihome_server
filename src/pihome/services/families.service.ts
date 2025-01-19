@@ -14,7 +14,7 @@ export class FamiliesService {
       throw new NotFoundException('User not found');
     }
     if (user.familyId) {
-      throw new BadRequestException('User already has a family');
+      throw new BadRequestException('User already belongs to a family');
     }
     const family = await this.prisma.family.create({
       data: {
@@ -104,7 +104,7 @@ export class FamiliesService {
       throw new NotFoundException('Family not found');
     }
     if (!family.users.some((user) => user.id === newOwnerId)) {
-      throw new BadRequestException('New owner is not a member of the family');
+      throw new NotFoundException('User not found');
     }
     await this.prisma.family.update({ where: { id: familyId }, data: { ownerId: newOwnerId } });
   }

@@ -17,14 +17,17 @@ export class SpotifyConnectionsService {
     refreshToken: string,
     expiresIn: number,
     spotifyDeviceId: string,
-    userId: string,
+    familyId: string,
   ): Promise<SpotifyConnection> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
+    const family = await this.prisma.family.findUnique({
+      where: { id: familyId },
+      include: { spotifyConnection: true },
+    });
+    if (!family) {
+      throw new NotFoundException('Family not found');
     }
-    if (!user.familyId) {
-      throw new BadRequestException('User is not in a family');
+    if (family.spotifyConnection) {
+      throw new BadRequestException('Family already has a Spotify connection');
     }
     const spotifyConnection = await this.prisma.spotifyConnection.create({
       data: {
@@ -33,7 +36,7 @@ export class SpotifyConnectionsService {
         expiresIn,
         issuedAt: new Date(),
         spotifyDeviceId,
-        familyId: user.familyId,
+        familyId,
       },
     });
     return spotifyConnection;

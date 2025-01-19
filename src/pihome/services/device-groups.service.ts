@@ -62,23 +62,33 @@ export class DeviceGroupsService {
   }
 
   async addDevicesToDeviceGroup(deviceGroupId: string, deviceIds: string[]): Promise<void> {
-    const deviceGroup = await this.prisma.deviceGroup.findUnique({ where: { id: deviceGroupId } });
+    const deviceGroup = await this.prisma.deviceGroup.findUnique({
+      where: { id: deviceGroupId },
+      include: { family: { include: { devices: true } } },
+    });
     if (!deviceGroup) {
       throw new NotFoundException('Device group not found');
     }
+    const familyDeviceIds = deviceGroup.family.devices.map((device) => device.id);
     for (const deviceId of deviceIds) {
-      const device = await this.prisma.device.findUnique({ where: { id: deviceId } });
-      if (!device) {
+      if (!familyDeviceIds.includes(deviceId)) {
         throw new NotFoundException('Device(s) not found');
       }
     }
     await this.prisma.device.updateMany({ where: { id: { in: deviceIds } }, data: { deviceGroupId } });
   }
 
-  async removeDevicesFromAnyDeviceGroup(deviceIds: string[]): Promise<void> {
+  async removeDevicesFromDeviceGroup(deviceGroupId: string, deviceIds: string[]): Promise<void> {
+    const deviceGroup = await this.prisma.deviceGroup.findUnique({
+      where: { id: deviceGroupId },
+      include: { devices: true },
+    });
+    if (!deviceGroup) {
+      throw new NotFoundException('Device group not found');
+    }
+    const deviceGroupDeviceIds = deviceGroup.devices.map((device) => device.id);
     for (const deviceId of deviceIds) {
-      const device = await this.prisma.device.findUnique({ where: { id: deviceId } });
-      if (!device) {
+      if (!deviceGroupDeviceIds.includes(deviceId)) {
         throw new NotFoundException('Device(s) not found');
       }
     }
