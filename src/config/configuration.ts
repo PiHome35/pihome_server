@@ -10,15 +10,15 @@ export default () => {
         url: process.env.MONGO_URL,
       },
     },
-    http: {
-      port: parseInt(process.env.PORT, 10),
-    },
     jwt: {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.JWT_EXPIRES_IN,
     },
     spotify: {
       clientId: process.env.SPOTIFY_CLIENT_ID,
+    },
+    mqtt: {
+      url: process.env.MQTT_URL,
     },
   } as AppConfig;
 };
