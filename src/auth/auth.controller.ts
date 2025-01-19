@@ -22,7 +22,7 @@ export class AuthController {
   @ApiCreatedResponse({ type: RegisterUserResponseDto })
   async registerUser(@Body() body: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
     const registerUserResponse = await this.authService.registerUser(body.email, body.password, body.name);
-    return plainToInstance(RegisterUserResponseDto, registerUserResponse);
+    return new RegisterUserResponseDto(registerUserResponse);
   }
 
   @Post('/register/device')
@@ -31,7 +31,7 @@ export class AuthController {
   async registerDevice(@Req() req: any, @Body() body: RegisterDeviceRequestDto): Promise<RegisterDeviceResponseDto> {
     const currentUser = req.user as ClientContext;
     const registerDeviceResponse = await this.authService.registerDevice(currentUser.sub, body.clientId, body.name);
-    return plainToInstance(RegisterDeviceResponseDto, registerDeviceResponse);
+    return new RegisterDeviceResponseDto(registerDeviceResponse);
   }
 
   @Post('/login/user')
@@ -43,7 +43,7 @@ export class AuthController {
   async loginUser(@Req() req: any): Promise<LoginUserResponseDto> {
     const currentUser = req.user as ClientContext;
     const loginUserResponse = await this.authService.loginUser(currentUser.sub);
-    return plainToInstance(LoginUserResponseDto, loginUserResponse);
+    return new LoginUserResponseDto(loginUserResponse);
   }
 
   @Post('/login/device')
@@ -55,6 +55,6 @@ export class AuthController {
   async loginDevice(@Req() req: any): Promise<LoginDeviceResponseDto> {
     const currentDevice = req.user as ClientContext;
     const loginDeviceResponse = await this.authService.loginDevice(currentDevice.sub);
-    return plainToInstance(LoginDeviceResponseDto, loginDeviceResponse);
+    return new LoginDeviceResponseDto(loginDeviceResponse);
   }
 }

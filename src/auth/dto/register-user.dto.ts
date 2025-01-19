@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { LoginUserResponseDto } from './login-user.dto';
 import { UserResponseDto } from 'src/pihome/dto/user.dto';
+import { Type } from 'class-transformer';
 
 export class RegisterUserRequestDto {
   @ApiProperty()
@@ -23,8 +24,14 @@ export class RegisterUserRequestDto {
 
 export class RegisterUserResponseDto {
   @ApiProperty({ type: UserResponseDto })
+  @Type(() => UserResponseDto)
   user: UserResponseDto;
 
   @ApiProperty({ type: LoginUserResponseDto })
+  @Type(() => LoginUserResponseDto)
   login: LoginUserResponseDto;
+
+  constructor(partial: Partial<RegisterUserResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

@@ -20,4 +20,8 @@ export class LoginUserResponseDto {
 
   @ApiProperty()
   tokenType: string;
+
+  constructor(partial: Partial<LoginUserResponseDto>) {
+    Object.assign(this, partial);
+  }
 }
