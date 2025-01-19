@@ -1,16 +1,16 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ClassSerializerInterceptor, Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ClassSerializerInterceptor, Logger, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { apiReference } from '@scalar/nestjs-api-reference';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { logger: ['log', 'error', 'warn', 'debug', 'verbose'] });
   app.enableCors();
-  app.setGlobalPrefix('/api', { exclude: ['/'] });
+  app.setGlobalPrefix('/api');
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1',
+    defaultVersion: ['1'],
     prefix: 'v',
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
