@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateFamilyInviteCodeResponseDto {
   @ApiProperty()
-  @IsNotEmpty()
-  @IsString()
   code: string;
+
+  constructor(partial: Partial<CreateFamilyInviteCodeResponseDto>) {
+    Object.assign(this, partial);
+  }
 }

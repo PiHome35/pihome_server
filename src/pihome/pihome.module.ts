@@ -26,10 +26,14 @@ const graphqlModule = GraphQLModule.forRoot<ApolloDriverConfig>({
   },
   context: ({ req }) => ({ req }),
 });
+import { SpotifyConnectionsController } from './controllers/spotify-connections.controller';
+import { DevicesController } from './controllers/devices.controller';
+import { DeviceGroupsController } from './controllers/device-groups.controller';
+import { ChatModelsService } from './services/chat-models.service';
+import { ChatModelsController } from './controllers/chat-models.controller';
 
 @Module({
   imports: [DatabaseModule, SpotifyModule, graphqlModule],
-  controllers: [FamiliesController, UsersController],
   providers: [
     UsersService,
     FamiliesService,
@@ -39,6 +43,22 @@ const graphqlModule = GraphQLModule.forRoot<ApolloDriverConfig>({
     ChatService,
     ChatResolver,
   ],
-  exports: [UsersService, FamiliesService, DeviceGroupsService, DevicesService, SpotifyConnectionsService, ChatService],
+  controllers: [
+    FamiliesController,
+    UsersController,
+    SpotifyConnectionsController,
+    DevicesController,
+    DeviceGroupsController,
+    ChatModelsController,
+  ],
+  exports: [
+    UsersService,
+    FamiliesService,
+    DeviceGroupsService,
+    DevicesService,
+    SpotifyConnectionsService,
+    ChatModelsService,
+    ChatService,
+  ],
 })
 export class PihomeModule {}

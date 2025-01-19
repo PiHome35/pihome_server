@@ -1,65 +1,57 @@
-import { Body, Controller, Delete, Get, Post, Put, Req, UnauthorizedException } from '@nestjs/common';
-import { ApiBody, ApiNoContentResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Post, Put, Req } from '@nestjs/common';
+import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
-import { GetUserResponseDto } from '../dto/get-user.dto';
-import { UserContext } from 'src/auth/interfaces/context.interface';
-import { ClientType } from 'src/auth/constants/client-type.enum';
-import { UpdateUserRequestDto, UpdateUserResponseDto } from '../dto/update-user.dto';
-import { JoinFamilyRequestDto, JoinFamilyResponseDto } from '../dto/join-family.dto';
+import { ClientContext } from 'src/auth/interfaces/context.interface';
+import { UpdateUserRequestDto } from '../dto/user/update-user.dto';
+import { JoinFamilyRequestDto } from '../dto/user/join-family.dto';
+import { UserResponseDto } from '../dto/user.dto';
+import { FamilyResponseDto } from '../dto/family.dto';
 
-@ApiTags('users')
-@Controller('users')
+@ApiTags('Users')
+@Controller('me')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Get('me')
+  @Get()
   @ApiOperation({ summary: 'Get current user' })
-  @ApiResponse({ type: GetUserResponseDto })
-  async getUser(@Req() req: any): Promise<GetUserResponseDto> {
-    const currentUser = req.user as UserContext;
-    if (currentUser.clientType !== ClientType.USER) {
-      throw new UnauthorizedException('Client is not a user');
-    }
-    const user = await this.usersService.getUserWithFamily(currentUser.sub);
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      familyId: user.family?.id,
-      familyName: user.family?.name,
-    };
+  @ApiOkResponse({ type: UserResponseDto })
+  async getUser(@Req() req: any): Promise<UserResponseDto> {
+    const currentUser = req.user as ClientContext;
+    const user = await this.usersService.getUser(currentUser.sub);
+    return new UserResponseDto(user);
   }
 
-  @Delete('me')
+  @Put()
+  @ApiOperation({ summary: 'Update current user' })
+  @ApiOkResponse({ type: UserResponseDto })
+  async updateUser(@Req() req: any, @Body() body: UpdateUserRequestDto): Promise<UserResponseDto> {
+    const currentUser = req.user as ClientContext;
+    const user = await this.usersService.updateUser(currentUser.sub, body.name, body.email, body.password);
+    return new UserResponseDto(user);
+  }
+
+  @Delete()
   @ApiOperation({ summary: 'Delete current user' })
   @ApiNoContentResponse()
-  @ApiResponse({ status: 204 })
   async deleteUser(@Req() req: any): Promise<void> {
-    const currentUser = req.user as UserContext;
+    const currentUser = req.user as ClientContext;
     await this.usersService.deleteUser(currentUser.sub);
-  }
-
-  @Put('me')
-  @ApiOperation({ summary: 'Update current user' })
-  @ApiBody({ type: UpdateUserRequestDto })
-  @ApiResponse({ type: UpdateUserResponseDto })
-  async updateUser(@Req() req: any, @Body() updateUserDto: UpdateUserRequestDto): Promise<UpdateUserResponseDto> {
-    const currentUser = req.user as UserContext;
-    const user = await this.usersService.updateUser(currentUser.sub, updateUserDto);
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    };
   }
 
   @Post('join-family')
   @ApiOperation({ summary: 'Join a family' })
-  @ApiBody({ type: JoinFamilyRequestDto })
-  @ApiResponse({ type: JoinFamilyResponseDto })
-  async joinFamily(@Req() req: any, @Body() joinFamilyDto: JoinFamilyRequestDto): Promise<JoinFamilyResponseDto> {
-    const currentUser = req.user as UserContext;
-    const familyId = await this.usersService.joinFamily(currentUser.sub, joinFamilyDto.code);
-    return { id: familyId };
+  @ApiOkResponse({ type: FamilyResponseDto })
+  async joinFamily(@Req() req: any, @Body() body: JoinFamilyRequestDto): Promise<FamilyResponseDto> {
+    const currentUser = req.user as ClientContext;
+    const family = await this.usersService.joinFamily(currentUser.sub, body.code);
+    return new FamilyResponseDto(family);
+  }
+
+  @Post('leave-family')
+  @ApiOperation({ summary: 'Leave current family' })
+  @ApiNoContentResponse()
+  async leaveFamily(@Req() req: any): Promise<void> {
+    const currentUser = req.user as ClientContext;
+    await this.usersService.leaveFamily(currentUser.sub);
   }
 }

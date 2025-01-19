@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated"
 }
 
 datasource db {
@@ -25,9 +24,10 @@ model User {
 model Family {
   id                String             @id @default(uuid())
   name              String
-  chatModel         String             @map("chat_model")
+  chatModelId       String?            @map("chat_model_id")
   ownerId           String             @unique @map("owner_id")
   inviteCode        String?            @unique @map("invite_code")
+  chatModel         ChatModel?         @relation(fields: [chatModelId], references: [id], onDelete: SetNull)
   owner             User               @relation("FamilyOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   users             User[]             @relation("FamilyMembers")
   deviceGroups      DeviceGroup[]
@@ -83,4 +83,15 @@ model SpotifyConnection {
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@map("spotify_connections")
+}
+
+model ChatModel {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  name      String
+  families  Family[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("chat_models")
 }

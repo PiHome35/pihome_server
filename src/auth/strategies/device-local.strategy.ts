@@ -1,8 +1,8 @@
 import { Strategy } from 'passport-local';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthService } from '../auth.service';
-import { UserContext } from '../interfaces/context.interface';
+import { ClientContext } from '../interfaces/context.interface';
 
 @Injectable()
 export class DeviceLocalStrategy extends PassportStrategy(Strategy, 'device-local') {
@@ -13,7 +13,7 @@ export class DeviceLocalStrategy extends PassportStrategy(Strategy, 'device-loca
     });
   }
 
-  async validate(clientId: string, clientSecret: string): Promise<UserContext> {
+  async validate(clientId: string, clientSecret: string): Promise<ClientContext> {
     return this.authService.validateAndGetDeviceContext(clientId, clientSecret);
   }
 }
