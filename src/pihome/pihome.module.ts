@@ -10,11 +10,18 @@ import { UsersController } from './controllers/users.controller';
 import { SpotifyModule } from 'src/spotify/spotify.module';
 import { SpotifyConnectionsController } from './controllers/spotify-connections.controller';
 import { DevicesController } from './controllers/devices.controller';
+import { DeviceGroupsController } from './controllers/device-groups.controller.dto';
 
 @Module({
   imports: [DatabaseModule, SpotifyModule],
   providers: [UsersService, FamiliesService, DeviceGroupsService, DevicesService, SpotifyConnectionsService],
-  controllers: [FamiliesController, UsersController, SpotifyConnectionsController, DevicesController],
+  controllers: [
+    FamiliesController,
+    UsersController,
+    SpotifyConnectionsController,
+    DevicesController,
+    DeviceGroupsController,
+  ],
   exports: [UsersService, FamiliesService, DeviceGroupsService, DevicesService, SpotifyConnectionsService],
 })
 export class PihomeModule {}

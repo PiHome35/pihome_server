@@ -61,7 +61,7 @@ export class DeviceGroupsService {
     await this.prisma.deviceGroup.delete({ where: { id: deviceGroupId } });
   }
 
-  async addDevicesToDeviceGroup(deviceGroupId: string, deviceIds: string[]): Promise<void> {
+  async addDevicesToDeviceGroup(deviceGroupId: string, deviceIds: string[]): Promise<Device[]> {
     const deviceGroup = await this.prisma.deviceGroup.findUnique({
       where: { id: deviceGroupId },
       include: { family: { include: { devices: true } } },
@@ -76,9 +76,14 @@ export class DeviceGroupsService {
       }
     }
     await this.prisma.device.updateMany({ where: { id: { in: deviceIds } }, data: { deviceGroupId } });
+    const updatedDeviceGroup = await this.prisma.deviceGroup.findUnique({
+      where: { id: deviceGroupId },
+      include: { devices: true },
+    });
+    return updatedDeviceGroup.devices;
   }
 
-  async removeDevicesFromDeviceGroup(deviceGroupId: string, deviceIds: string[]): Promise<void> {
+  async removeDevicesFromDeviceGroup(deviceGroupId: string, deviceIds: string[]): Promise<Device[]> {
     const deviceGroup = await this.prisma.deviceGroup.findUnique({
       where: { id: deviceGroupId },
       include: { devices: true },
@@ -93,5 +98,10 @@ export class DeviceGroupsService {
       }
     }
     await this.prisma.device.updateMany({ where: { id: { in: deviceIds } }, data: { deviceGroupId: null } });
+    const updatedDeviceGroup = await this.prisma.deviceGroup.findUnique({
+      where: { id: deviceGroupId },
+      include: { devices: true },
+    });
+    return updatedDeviceGroup.devices;
   }
 }
