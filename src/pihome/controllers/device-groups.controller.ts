@@ -16,6 +16,7 @@ import {
   RemoveFamilyDeviceGroupDevicesRequestDto,
   RemoveFamilyDeviceGroupDevicesResponseDto,
 } from '../dto/device-group/remove-family-device-group-devices.dto';
+import { ListFamilyDeviceGroupDevicesResponseDto } from '../dto/device-group/list-family-device-group-devices.dto';
 
 @ApiTags('Device Groups')
 @Controller('me/family/device-groups')
@@ -116,6 +117,24 @@ export class DeviceGroupsController {
     }
     const devices = await this.deviceGroupsService.addDevicesToDeviceGroup(deviceGroupId, body.deviceIds);
     return new AddFamilyDeviceGroupDevicesResponseDto({ devices });
+  }
+
+  @Get(':deviceGroupId/devices')
+  @ApiOperation({ summary: 'List devices in a device group in current user family' })
+  @ApiOkResponse({ type: ListFamilyDeviceGroupDevicesResponseDto })
+  async listDeviceGroupDevices(
+    @Req() req: any,
+    @Param('deviceGroupId') deviceGroupId: string,
+  ): Promise<ListFamilyDeviceGroupDevicesResponseDto> {
+    const currentUser = req.user as ClientContext;
+    const family = await this.usersService.getUserFamily(currentUser.sub);
+    const familyDeviceGroups = await this.familiesService.listFamilyDeviceGroups(family.id);
+    const deviceGroup = familyDeviceGroups.find((deviceGroup) => deviceGroup.id === deviceGroupId);
+    if (!deviceGroup) {
+      throw new NotFoundException('Device group not found');
+    }
+    const devices = await this.deviceGroupsService.listDeviceGroupDevices(deviceGroupId);
+    return new ListFamilyDeviceGroupDevicesResponseDto({ devices });
   }
 
   @Post(':deviceGroupId/devices/remove')
