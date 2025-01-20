@@ -13,6 +13,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { UsersController } from './controllers/users.controller';
 import { SpotifyModule } from 'src/spotify/spotify.module';
+import { ChatModelsService } from './services/chat-models.service';
 
 const graphqlModule = GraphQLModule.forRoot<ApolloDriverConfig>({
   driver: ApolloDriver,
@@ -29,7 +30,6 @@ const graphqlModule = GraphQLModule.forRoot<ApolloDriverConfig>({
 import { SpotifyConnectionsController } from './controllers/spotify-connections.controller';
 import { DevicesController } from './controllers/devices.controller';
 import { DeviceGroupsController } from './controllers/device-groups.controller';
-import { ChatModelsService } from './services/chat-models.service';
 import { ChatModelsController } from './controllers/chat-models.controller';
 
 @Module({
@@ -42,6 +42,7 @@ import { ChatModelsController } from './controllers/chat-models.controller';
     SpotifyConnectionsService,
     ChatService,
     ChatResolver,
+    ChatModelsService,
   ],
   controllers: [
     FamiliesController,

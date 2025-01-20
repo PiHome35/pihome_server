@@ -6,12 +6,11 @@ import { NewMessageInput } from '../dto/chat/newMessage.input';
 import { UseGuards } from '@nestjs/common/decorators/core/use-guards.decorator';
 import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 import { CurrentUser } from 'src/auth/decorators/current-user';
-import { User } from 'prisma/generated';
 import { MessageDto } from '../dto/chat/message.dto';
 import { NewChatDto } from '../dto/chat/new-chat.dto';
 import { ChatDto } from '../dto/chat/chat.dto';
 import { PaginationDto } from '../dto/chat/pagination.dto';
-
+import { User } from '@prisma/client';
 const pubSub = new PubSub();
 
 @Resolver('Chat')
