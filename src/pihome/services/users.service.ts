@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { Family, User } from '@prisma/client';
 import * as argon2 from 'argon2';
@@ -102,6 +102,10 @@ export class UsersService {
     }
     if (!user.familyId) {
       throw new BadRequestException('User is not in a family');
+    }
+    const family = await this.prisma.family.findUnique({ where: { id: user.familyId } });
+    if (family.ownerId === userId) {
+      throw new ForbiddenException('Family owner cannot leave the family');
     }
     await this.prisma.user.update({ where: { id: userId }, data: { familyId: null } });
   }
