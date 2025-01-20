@@ -96,6 +96,7 @@ export class FamiliesService {
       throw new NotFoundException('Family not found');
     }
     family.inviteCode = generateRandomSecret(4);
+    await this.prisma.family.update({ where: { id: familyId }, data: { inviteCode: family.inviteCode } });
     return family.inviteCode;
   }
 
