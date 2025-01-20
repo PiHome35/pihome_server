@@ -11,11 +11,14 @@ import { NewChatDto } from '../dto/chat/new-chat.dto';
 import { ChatDto } from '../dto/chat/chat.dto';
 import { PaginationDto } from '../dto/chat/pagination.dto';
 import { User } from '@prisma/client';
-const pubSub = new PubSub();
+import { Inject } from '@nestjs/common';
 
 @Resolver('Chat')
 export class ChatResolver {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    @Inject('PUB_SUB') private readonly pubSub: PubSub,
+  ) {}
 
   @Public()
   @Query(() => [ChatDto])
@@ -43,7 +46,7 @@ export class ChatResolver {
   async createNewChat(@Args('familyId') familyId: string, @CurrentUser() user: User): Promise<ChatDto> {
     const newChat = await this.chatService.createChat(familyId);
     console.log('newChat: ', newChat);
-    pubSub.publish('chatCreated', { chatCreated: newChat });
+    this.pubSub.publish('chatCreated', { chatCreated: newChat });
     return newChat;
   }
 
@@ -61,19 +64,19 @@ export class ChatResolver {
       chatId,
     };
     const messageDto = await this.chatService.addMessage(newMessage);
-    pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageDto });
+    this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageDto });
     return messageDto;
   }
 
   @Public()
   @Subscription(() => MessageDto, { nullable: true })
   messageAdded(@Args('chatId') chatId: string) {
-    return pubSub.asyncIterableIterator(`messageAdded-${chatId}`);
+    return this.pubSub.asyncIterableIterator(`messageAdded-${chatId}`);
   }
 
   @Public()
   @Subscription(() => NewChatDto)
   chatCreated() {
-    return pubSub.asyncIterableIterator('chatCreated');
+    return this.pubSub.asyncIterableIterator('chatCreated');
   }
 }

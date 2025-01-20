@@ -16,6 +16,27 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type DeviceGroupStatus {
+  devices: [DeviceStatus!]!
+  id: ID!
+  isMuted: Boolean!
+  name: String!
+}
+
+type DeviceGroupWithoutDevicesStatus {
+  id: ID!
+  isMuted: Boolean!
+  name: String!
+}
+
+type DeviceStatus {
+  id: ID!
+  isMuted: Boolean!
+  isOn: Boolean!
+  name: String!
+  volumePercent: Int!
+}
+
 type MessageDto {
   chatId: String!
   content: String!
@@ -27,11 +48,19 @@ type MessageDto {
 type Mutation {
   addMessage(chatId: String!, content: String!): MessageDto!
   createNewChat(familyId: String!): ChatDto!
+  setDeviceGroupMuted(input: SetMuteGroupInput!): DeviceGroupStatus!
+  setDeviceMuted(input: SetMuteDeviceInput!): DeviceStatus!
+  setDeviceVolume(input: SetVolumeDeviceInput!): DeviceStatus!
 }
 
 type NewChatDto {
   id: String!
   name: String!
+}
+
+type OverviewDeviceStatus {
+  deviceGroups: [DeviceGroupWithoutDevicesStatus!]!
+  standAloneDevices: [DeviceStatus!]!
 }
 
 input PaginationDto {
@@ -42,9 +71,30 @@ input PaginationDto {
 type Query {
   getAllChatsWithFamilyId(familyId: String!, pagination: PaginationDto): [ChatDto!]!
   getChatMessages(chatId: String!, pagination: PaginationDto): [MessageDto!]!
+  getDeviceGroupStatus(deviceGroupId: String!): DeviceGroupStatus!
+  getDeviceStatus(deviceId: String!): DeviceStatus!
+  getOverviewDeviceStatus(familyId: String!): OverviewDeviceStatus!
+}
+
+input SetMuteDeviceInput {
+  deviceId: String!
+  isMuted: Boolean!
+}
+
+input SetMuteGroupInput {
+  deviceGroupId: String!
+  isMuted: Boolean!
+}
+
+input SetVolumeDeviceInput {
+  deviceId: String!
+  volumePercent: Int!
 }
 
 type Subscription {
   chatCreated: NewChatDto!
+  deviceGroupStatusUpdated: DeviceGroupStatus!
+  deviceStatusUpdated: DeviceStatus!
   messageAdded(chatId: String!): MessageDto
+  overviewDeviceStatusUpdated: OverviewDeviceStatus!
 }

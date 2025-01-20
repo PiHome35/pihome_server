@@ -7,7 +7,7 @@ export class MongoService implements OnModuleInit, OnModuleDestroy {
   private client: MongoClient;
 
   constructor(private readonly configService: ConfigService) {
-    this.client = new MongoClient(process.env.MONGO_URL);
+    this.client = new MongoClient(this.configService.get('MONGO_URL'));
   }
 
   async onModuleInit() {
