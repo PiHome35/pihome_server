@@ -14,6 +14,7 @@ export class DeviceGroupsService {
     const deviceGroup = await this.prisma.deviceGroup.create({
       data: {
         name,
+        isMuted: false,
         familyId: family.id,
       },
     });

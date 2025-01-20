@@ -61,6 +61,7 @@ model Device {
 model DeviceGroup {
   id        String   @id @default(uuid())
   name      String
+  isMuted   Boolean  @map("is_muted")
   familyId  String   @map("family_id")
   family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
   devices   Device[]

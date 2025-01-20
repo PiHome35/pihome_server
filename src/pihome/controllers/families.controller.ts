@@ -13,7 +13,6 @@ import {
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FamiliesService } from '../services/families.service';
 import { ClientContext } from 'src/auth/interfaces/context.interface';
-import { plainToInstance } from 'class-transformer';
 import { UsersService } from '../services/users.service';
 import { CreateFamilyRequestDto } from '../dto/family/create-family.dto';
 import { UpdateFamilyRequestDto } from '../dto/family/update-family.dto';
@@ -21,6 +20,7 @@ import { ListFamilyUsersResponseDto } from '../dto/family/list-family-users.dto'
 import { UserResponseDto } from '../dto/user.dto';
 import { CreateFamilyInviteCodeResponseDto } from '../dto/family/create-family-invite-code.dto';
 import { FamilyResponseDto } from '../dto/family.dto';
+import { TransferFamilyOwnershipRequestDto } from '../dto/family/transfer-family-ownership.dto';
 
 @ApiTags('Families')
 @Controller('me/family')
@@ -116,5 +116,21 @@ export class FamiliesController {
       throw new ForbiddenException('Current user is not the owner of the family');
     }
     await this.familiesService.deleteFamilyInviteCode(family.id);
+  }
+
+  @Post('transfer-ownership')
+  @ApiOperation({ summary: 'Transfer family ownership' })
+  @ApiOkResponse({ type: UserResponseDto })
+  async transferFamilyOwnership(
+    @Req() req: any,
+    @Body() body: TransferFamilyOwnershipRequestDto,
+  ): Promise<UserResponseDto> {
+    const currentUser = req.user as ClientContext;
+    const family = await this.usersService.getUserFamily(currentUser.sub);
+    if (family.ownerId !== currentUser.sub) {
+      throw new ForbiddenException('Current user is not the owner of the family');
+    }
+    const newOwner = await this.familiesService.transferFamilyOwnership(family.id, body.newOwnerId);
+    return new UserResponseDto(newOwner);
   }
 }

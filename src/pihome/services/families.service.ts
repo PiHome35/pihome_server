@@ -95,9 +95,9 @@ export class FamiliesService {
     if (!family) {
       throw new NotFoundException('Family not found');
     }
-    family.inviteCode = generateRandomSecret(4);
-    await this.prisma.family.update({ where: { id: familyId }, data: { inviteCode: family.inviteCode } });
-    return family.inviteCode;
+    const inviteCode = generateRandomSecret(4);
+    await this.prisma.family.update({ where: { id: familyId }, data: { inviteCode } });
+    return inviteCode;
   }
 
   async deleteFamilyInviteCode(familyId: string): Promise<void> {
@@ -111,7 +111,7 @@ export class FamiliesService {
     await this.prisma.family.update({ where: { id: familyId }, data: { inviteCode: null } });
   }
 
-  async transferFamilyOwnership(familyId: string, newOwnerId: string): Promise<void> {
+  async transferFamilyOwnership(familyId: string, newOwnerId: string): Promise<User> {
     const family = await this.prisma.family.findUnique({ where: { id: familyId }, include: { users: true } });
     if (!family) {
       throw new NotFoundException('Family not found');
@@ -120,5 +120,6 @@ export class FamiliesService {
       throw new NotFoundException('User not found');
     }
     await this.prisma.family.update({ where: { id: familyId }, data: { ownerId: newOwnerId } });
+    return family.users.find((user) => user.id === newOwnerId)!;
   }
 }
