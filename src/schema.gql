@@ -60,6 +60,7 @@ type NewChatDto {
 
 type OverviewDeviceStatus {
   deviceGroups: [DeviceGroupWithoutDevicesStatus!]!
+  familyId: ID!
   standAloneDevices: [DeviceStatus!]!
 }
 
@@ -93,8 +94,8 @@ input SetVolumeDeviceInput {
 
 type Subscription {
   chatCreated: NewChatDto!
-  deviceGroupStatusUpdated: DeviceGroupStatus!
-  deviceStatusUpdated: DeviceStatus!
+  deviceGroupStatusUpdated(deviceGroupId: String!): DeviceGroupStatus!
+  deviceStatusUpdated(deviceId: String!): DeviceStatus!
   messageAdded(chatId: String!): MessageDto
-  overviewDeviceStatusUpdated: OverviewDeviceStatus!
+  overviewDeviceStatusUpdated(familyId: String!): OverviewDeviceStatus!
 }
