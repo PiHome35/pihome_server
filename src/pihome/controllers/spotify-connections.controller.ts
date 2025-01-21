@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SpotifyConnectionsService } from '../services/spotify-connections.service';
 import { CreateFamilySpotifyConnectionRequestDto } from '../dto/spotify-connection/create-family-spotify-connection.dto';
@@ -6,9 +6,11 @@ import { ClientContext } from 'src/auth/interfaces/context.interface';
 import { UsersService } from '../services/users.service';
 import { FamiliesService } from '../services/families.service';
 import { SpotifyConnectionResponseDto } from '../dto/spotify-connection.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@ApiTags('Spotify Connections')
 @Controller('me/family/spotify-connection')
+@ApiTags('Spotify Connections')
+@UseGuards(JwtAuthGuard)
 export class SpotifyConnectionsController {
   constructor(
     private usersService: UsersService,

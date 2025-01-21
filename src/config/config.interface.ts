@@ -16,13 +16,8 @@ export interface SpotifyConfig {
   clientId: string;
 }
 
-export interface MqttConfig {
-  url: string;
-}
-
 export interface AppConfig {
   db: DatabaseConfig;
   jwt: JwtConfig;
   spotify: SpotifyConfig;
-  mqtt: MqttConfig;
 }

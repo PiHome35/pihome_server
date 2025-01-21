@@ -2,18 +2,20 @@ import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { DeviceStatus } from '../models/device-status/device-status.model';
 import { DeviceGroupStatus } from '../models/device-status/device-group-status.model';
 import { PubSub } from 'graphql-subscriptions';
-import { Inject } from '@nestjs/common';
-import { SetMuteDeviceInput } from '../inputs/device-status/set-mute-device.input';
-import { SetVolumeDeviceInput } from '../inputs/device-status/set-volume-device.input';
+import { Inject, UseGuards } from '@nestjs/common';
+import { SetMuteDeviceInput } from '../models/device-status/set-mute-device.input';
+import { SetVolumeDeviceInput } from '../models/device-status/set-volume-device.input';
 import { DeviceStatusService } from '../services/device-status.service';
 import { OverviewDeviceStatus } from '../models/device-status/overview-device-status.model';
-import { SetMuteGroupInput } from '../inputs/device-status/set-mute-group.input';
+import { SetMuteGroupInput } from '../models/device-status/set-mute-group.input';
+import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 
-@Resolver()
+@Resolver('DeviceStatus')
+@UseGuards(GqlAuthGuard)
 export class DeviceStatusResolver {
   constructor(
     private deviceStatusService: DeviceStatusService,
-    @Inject('PUB_SUB') private pubSub: PubSub,
+    @Inject('PUB_SUB') private readonly pubSub: PubSub,
   ) {}
 
   @Query(() => DeviceStatus)

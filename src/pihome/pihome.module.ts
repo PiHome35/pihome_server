@@ -8,21 +8,23 @@ import { SpotifyConnectionsService } from './services/spotify-connections.servic
 import { DatabaseModule } from 'src/database/database.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ChatService } from './services/chat.service';
-import { ChatResolver } from './resolver/chat.resolver';
+import { ChatResolver } from './resolvers/chat.resolver';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { UsersController } from './controllers/users.controller';
 import { SpotifyModule } from 'src/spotify/spotify.module';
 import { ChatModelsService } from './services/chat-models.service';
-import { DeviceStatusResolver } from './resolver/device-status.resolver';
+import { DeviceStatusResolver } from './resolvers/device-status.resolver';
 import { DeviceStatusService } from './services/device-status.service';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 
 const graphqlModule = GraphQLModule.forRoot<ApolloDriverConfig>({
   driver: ApolloDriver,
   autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
   installSubscriptionHandlers: true,
   sortSchema: true,
-  playground: true,
+  playground: false,
+  plugins: [ApolloServerPluginLandingPageLocalDefault()],
   subscriptions: {
     'graphql-ws': true,
     'subscriptions-transport-ws': true,

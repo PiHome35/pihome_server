@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from '../services/users.service';
 import { ClientContext } from 'src/auth/interfaces/context.interface';
@@ -6,9 +6,11 @@ import { UpdateUserRequestDto } from '../dto/user/update-user.dto';
 import { JoinFamilyRequestDto } from '../dto/user/join-family.dto';
 import { UserResponseDto } from '../dto/user.dto';
 import { FamilyResponseDto } from '../dto/family.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@ApiTags('Users')
 @Controller('me')
+@ApiTags('Users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private usersService: UsersService) {}
 

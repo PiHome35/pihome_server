@@ -9,6 +9,7 @@ import { RegisterUserRequestDto, RegisterUserResponseDto } from './dto/register-
 import { RegisterDeviceRequestDto, RegisterDeviceResponseDto } from './dto/register-device.dto';
 import { LoginUserRequestDto, LoginUserResponseDto } from './dto/login-user.dto';
 import { LoginDeviceRequestDto, LoginDeviceResponseDto } from './dto/login-device.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -16,8 +17,8 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/register/user')
-  @Public()
   @ApiOperation({ summary: 'Register a user' })
+  @Public()
   @ApiCreatedResponse({ type: RegisterUserResponseDto })
   async registerUser(@Body() body: RegisterUserRequestDto): Promise<RegisterUserResponseDto> {
     const registerUserResponse = await this.authService.registerUser(body.email, body.password, body.name);
@@ -26,6 +27,7 @@ export class AuthController {
 
   @Post('/register/device')
   @ApiOperation({ summary: 'Register a device' })
+  @UseGuards(JwtAuthGuard)
   @ApiCreatedResponse({ type: RegisterDeviceResponseDto })
   async registerDevice(@Req() req: any, @Body() body: RegisterDeviceRequestDto): Promise<RegisterDeviceResponseDto> {
     const currentUser = req.user as ClientContext;
@@ -34,9 +36,8 @@ export class AuthController {
   }
 
   @Post('/login/user')
-  @Public()
-  @UseGuards(UserLocalAuthGuard)
   @ApiOperation({ summary: 'Login a user' })
+  @UseGuards(UserLocalAuthGuard)
   @ApiBody({ type: LoginUserRequestDto })
   @ApiOkResponse({ type: LoginUserResponseDto })
   async loginUser(@Req() req: any): Promise<LoginUserResponseDto> {
@@ -46,9 +47,8 @@ export class AuthController {
   }
 
   @Post('/login/device')
-  @Public()
-  @UseGuards(DeviceLocalAuthGuard)
   @ApiOperation({ summary: 'Login a device' })
+  @UseGuards(DeviceLocalAuthGuard)
   @ApiBody({ type: LoginDeviceRequestDto })
   @ApiOkResponse({ type: LoginDeviceResponseDto })
   async loginDevice(@Req() req: any): Promise<LoginDeviceResponseDto> {

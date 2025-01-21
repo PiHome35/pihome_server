@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Put, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Put, Req, UseGuards } from '@nestjs/common';
 import { ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { DevicesService } from '../services/devices.service';
 import { ListFamilyDevicesResponseDto } from '../dto/device/list-family-devices.dto';
@@ -7,9 +7,11 @@ import { UsersService } from '../services/users.service';
 import { FamiliesService } from '../services/families.service';
 import { DeviceResponseDto } from '../dto/device.dto';
 import { UpdateFamilyDeviceRequestDto } from '../dto/device/update-family-device.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@ApiTags('Devices')
 @Controller('me/family/devices')
+@ApiTags('Devices')
+@UseGuards(JwtAuthGuard)
 export class DevicesController {
   constructor(
     private readonly usersService: UsersService,

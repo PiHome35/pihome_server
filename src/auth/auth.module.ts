@@ -6,8 +6,6 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UserLocalStrategy } from './strategies/user-local.strategy';
 import { ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { DeviceLocalStrategy } from './strategies/device-local.strategy';
 import { PihomeModule } from 'src/pihome/pihome.module';
 
@@ -23,16 +21,7 @@ import { PihomeModule } from 'src/pihome/pihome.module';
     }),
     PihomeModule,
   ],
-  providers: [
-    AuthService,
-    UserLocalStrategy,
-    DeviceLocalStrategy,
-    JwtStrategy,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-  ],
+  providers: [AuthService, UserLocalStrategy, DeviceLocalStrategy, JwtStrategy],
   controllers: [AuthController],
   exports: [AuthService],
 })
