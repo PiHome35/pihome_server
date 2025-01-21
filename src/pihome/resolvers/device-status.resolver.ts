@@ -33,8 +33,10 @@ export class DeviceStatusResolver {
     return this.deviceStatusService.setDeviceVolume(input.deviceId, input.volumePercent);
   }
 
-  @Subscription(() => DeviceStatus)
-  deviceStatusUpdated() {
+  @Subscription(() => DeviceStatus, {
+    filter: (payload, variables) => payload.deviceStatusUpdated.id === variables.deviceId,
+  })
+  deviceStatusUpdated(@Args('deviceId') deviceId: string) {
     return this.pubSub.asyncIterableIterator('deviceStatusUpdated');
   }
 
@@ -48,8 +50,10 @@ export class DeviceStatusResolver {
     return this.deviceStatusService.setDeviceGroupMuted(input.deviceGroupId, input.isMuted);
   }
 
-  @Subscription(() => DeviceGroupStatus)
-  deviceGroupStatusUpdated() {
+  @Subscription(() => DeviceGroupStatus, {
+    filter: (payload, variables) => payload.deviceGroupStatusUpdated.id === variables.deviceGroupId,
+  })
+  deviceGroupStatusUpdated(@Args('deviceGroupId') deviceGroupId: string) {
     return this.pubSub.asyncIterableIterator('deviceGroupStatusUpdated');
   }
 
@@ -58,8 +62,10 @@ export class DeviceStatusResolver {
     return this.deviceStatusService.getOverviewDeviceStatus(familyId);
   }
 
-  @Subscription(() => OverviewDeviceStatus)
-  overviewDeviceStatusUpdated() {
+  @Subscription(() => OverviewDeviceStatus, {
+    filter: (payload, variables) => payload.overviewDeviceStatusUpdated.familyId === variables.familyId,
+  })
+  overviewDeviceStatusUpdated(@Args('familyId') familyId: string) {
     return this.pubSub.asyncIterableIterator('overviewDeviceStatusUpdated');
   }
 }

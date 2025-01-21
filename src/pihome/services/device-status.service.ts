@@ -45,7 +45,7 @@ export class DeviceStatusService {
       throw new NotFoundException('Family not found');
     }
     const standAloneDevices = await this.devicesService.listDevicesNotInDeviceGroup(familyId);
-    return new OverviewDeviceStatus({ deviceGroups: family.deviceGroups, standAloneDevices });
+    return new OverviewDeviceStatus({ familyId, deviceGroups: family.deviceGroups, standAloneDevices });
   }
 
   async publishAffectedStatusUpdates(deviceId: string, statusCascadesToGroup: boolean) {
@@ -70,6 +70,7 @@ export class DeviceStatusService {
       const standAloneDevices = await this.devicesService.listDevicesNotInDeviceGroup(device.familyId);
       this.pubSub.publish('overviewDeviceStatusUpdated', {
         overviewDeviceStatusUpdated: new OverviewDeviceStatus({
+          familyId: device.familyId,
           deviceGroups,
           standAloneDevices,
         }),
