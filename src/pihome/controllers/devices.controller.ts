@@ -19,6 +19,15 @@ export class DevicesController {
     private readonly devicesService: DevicesService,
   ) {}
 
+  @Get('current')
+  @ApiOperation({ summary: 'Get current device' })
+  @ApiOkResponse({ type: DeviceResponseDto })
+  async getDevice(@Req() req: any): Promise<DeviceResponseDto> {
+    const currentDevice = req.user as ClientContext;
+    const device = await this.devicesService.getDevice(currentDevice.sub);
+    return new DeviceResponseDto(device);
+  }
+
   @Get()
   @ApiOperation({ summary: 'List devices in current user family' })
   @ApiOkResponse({ type: ListFamilyDevicesResponseDto })
