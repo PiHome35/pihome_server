@@ -17,8 +17,5 @@ export default () => {
     spotify: {
       clientId: process.env.SPOTIFY_CLIENT_ID,
     },
-    mqtt: {
-      url: process.env.MQTT_URL,
-    },
   } as AppConfig;
 };

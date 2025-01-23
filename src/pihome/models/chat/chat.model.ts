@@ -1,6 +1,6 @@
 import { IsArray, IsDate, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MessageDto } from './message.dto';
+import { MessageDto } from './message.model';
 import { Field, ObjectType } from '@nestjs/graphql';
 
 export class CreateChatDto {

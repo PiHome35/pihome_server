@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ObjectId } from 'mongodb';
 import { Message } from 'src/pihome/interfaces/message.interface';
-import { MessageDto } from '../dto/chat/message.dto';
-import { ChatDto } from '../dto/chat/chat.dto';
-import { NewMessageInput } from '../dto/chat/newMessage.input';
+import { MessageDto } from '../models/chat/message.model';
+import { ChatDto } from '../models/chat/chat.model';
+import { NewMessageInput } from '../models/chat/newMessage.input';
 import { MongoService } from 'src/database/mongo.service';
-import { NewChatDto } from '../dto/chat/new-chat.dto';
-import { PaginationDto } from '../dto/chat/pagination.dto';
+import { NewChatDto } from '../models/chat/new-chat.model';
+import { PaginationDto } from '../models/chat/pagination.model';
 import { Chat } from '../interfaces/chat.interface';
 
 // interface MessageDocument {

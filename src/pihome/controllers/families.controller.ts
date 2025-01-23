@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FamiliesService } from '../services/families.service';
@@ -21,9 +22,11 @@ import { UserResponseDto } from '../dto/user.dto';
 import { CreateFamilyInviteCodeResponseDto } from '../dto/family/create-family-invite-code.dto';
 import { FamilyResponseDto } from '../dto/family.dto';
 import { TransferFamilyOwnershipRequestDto } from '../dto/family/transfer-family-ownership.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
-@ApiTags('Families')
 @Controller('me/family')
+@ApiTags('Families')
+@UseGuards(JwtAuthGuard)
 export class FamiliesController {
   constructor(
     private familiesService: FamiliesService,

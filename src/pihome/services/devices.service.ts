@@ -74,6 +74,14 @@ export class DevicesService {
     return device.deviceGroup;
   }
 
+  async listDevicesNotInDeviceGroup(familyId: string): Promise<Device[]> {
+    const family = await this.prisma.family.findUnique({ where: { id: familyId }, include: { devices: true } });
+    if (!family) {
+      throw new NotFoundException('Family not found');
+    }
+    return family.devices.filter((device) => !device.deviceGroupId);
+  }
+
   async updateDevice(deviceId: string, name?: string): Promise<Device> {
     const device = await this.prisma.device.findUnique({ where: { id: deviceId } });
     if (!device) {
