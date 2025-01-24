@@ -18,12 +18,11 @@ export class SpotifyConnectionResponseDto {
   @Transform(({ value }) => value.toISOString())
   issuedAt: Date;
 
-  @ApiProperty()
-  spotifyDeviceId: string;
+  @ApiProperty({ required: false, nullable: true })
+  spotifyDeviceId?: string;
 
   @ApiProperty()
   familyId: string;
-
   @ApiProperty({ format: 'date-time' })
   @Transform(({ value }) => value.toISOString())
   createdAt: Date;

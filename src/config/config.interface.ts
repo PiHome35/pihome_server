@@ -20,4 +20,9 @@ export interface AppConfig {
   db: DatabaseConfig;
   jwt: JwtConfig;
   spotify: SpotifyConfig;
+  gemini: GeminiConfig;
+}
+
+export interface GeminiConfig {
+  apiKey: string;
 }

@@ -54,6 +54,7 @@ type Mutation {
 }
 
 type NewChatDto {
+  familyId: String!
   id: String!
   name: String!
 }

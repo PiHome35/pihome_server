@@ -8,18 +8,47 @@ import { MongoService } from 'src/database/mongo.service';
 import { NewChatDto } from '../models/chat/new-chat.model';
 import { PaginationDto } from '../models/chat/pagination.model';
 import { Chat } from '../interfaces/chat.interface';
-
-// interface MessageDocument {
-//   _id: ObjectId;
-//   chatId: string;
-//   senderId: string;
-//   content: string;
-//   createdAt: Date;
-// }
-
+import { GeminiLangchainService } from 'src/agent/gemini/gemini-langchain.service';
 @Injectable()
 export class ChatService {
-  constructor(private readonly mongoService: MongoService) {}
+  constructor(
+    private readonly mongoService: MongoService,
+    private readonly geminiService: GeminiLangchainService,
+  ) {}
+
+  private async updateChatLatestMessage(message: Message): Promise<void> {
+    const db = this.mongoService.getDb();
+    await db.collection<Chat>('chats').updateOne(
+      { _id: new ObjectId(message.chatId) },
+      {
+        $set: {
+          latestMessageId: message.id,
+          updatedAt: new Date(),
+        },
+      },
+    );
+  }
+  private async saveMessage(message: NewMessageInput): Promise<MessageDto> {
+    const db = this.mongoService.getDb();
+    const messageId = new ObjectId();
+    const newMessage: Message = {
+      id: messageId.toString(),
+      chatId: message.chatId,
+      senderId: message.senderId,
+      content: message.content,
+      createdAt: new Date(),
+    };
+    await db.collection<Message>('chat_messages').insertOne(newMessage);
+    await this.updateChatLatestMessage(newMessage);
+
+    return {
+      id: newMessage.id,
+      chatId: newMessage.chatId,
+      content: newMessage.content,
+      senderId: newMessage.senderId,
+      createdAt: newMessage.createdAt,
+    };
+  }
 
   async createChat(familyId: string): Promise<ChatDto> {
     const db = this.mongoService.getDb();
@@ -28,6 +57,7 @@ export class ChatService {
       name: 'New Chat',
       createdAt: new Date(),
       updatedAt: new Date(),
+      latestMessageId: null,
     };
 
     const chat = await db.collection<Chat>('chats').insertOne(newChat);
@@ -45,41 +75,32 @@ export class ChatService {
   async addMessage(message: NewMessageInput): Promise<MessageDto> {
     const db = this.mongoService.getDb();
     const chat = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(message.chatId) });
-
-    console.log('senderId', message.senderId);
-
     if (!chat) {
       throw new Error('Chat not found');
     }
 
-    const messageId = new ObjectId();
-    const newMessage: Message = {
-      id: messageId.toString(),
-      chatId: message.chatId,
-      senderId: message.senderId,
-      content: message.content,
-      createdAt: new Date(),
+    // First save user message
+    const userMessageDto = await this.saveMessage(message);
+    return userMessageDto;
+  }
+
+  async addAiResponse(chatId: string, userMessageContent: string): Promise<MessageDto> {
+    const db = this.mongoService.getDb();
+    const chat = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(chatId) });
+    if (!chat) {
+      throw new Error('Chat not found');
+    }
+    const aiId: string = 'cb99a5c3-651e-4958-bf41-6c8f2d7ca40c';
+    const aiResponseText = await this.geminiService.processMessage(userMessageContent);
+
+    const aiMessage: NewMessageInput = {
+      chatId,
+      senderId: aiId,
+      content: aiResponseText,
     };
 
-    await db.collection<Message>('chat_messages').insertOne(newMessage);
-
-    await db.collection<Chat>('chats').updateOne(
-      { _id: new ObjectId(message.chatId) },
-      {
-        $set: {
-          latestMessageId: messageId.toString(),
-          updatedAt: new Date(),
-        },
-      },
-    );
-
-    return {
-      id: messageId.toString(),
-      content: message.content,
-      chatId: message.chatId,
-      senderId: message.senderId,
-      createdAt: newMessage.createdAt,
-    };
+    const aiMessageDto = await this.saveMessage(aiMessage);
+    return aiMessageDto;
   }
 
   async getChatMessages(chatId: string, pagination?: PaginationDto): Promise<MessageDto[]> {

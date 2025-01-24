@@ -10,4 +10,8 @@ export class NewChatDto {
   @Field()
   @IsString()
   name: string;
+
+  @Field()
+  @IsString()
+  familyId: string;
 }

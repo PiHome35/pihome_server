@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ClassSerializerInterceptor, Logger, RequestMethod, ValidationPipe, VersioningType } from '@nestjs/common';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { MyClassSerializerInterceptor } from './pihome/interceptor/my-class-serializer.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { logger: ['log', 'error', 'warn', 'debug', 'verbose'] });
@@ -14,7 +15,7 @@ async function bootstrap() {
     prefix: 'v',
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  app.useGlobalInterceptors(new MyClassSerializerInterceptor(app.get(Reflector)));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('PiHome API')

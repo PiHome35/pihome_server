@@ -13,12 +13,6 @@ export class CreateFamilySpotifyConnectionRequestDto {
   refreshToken: string;
 
   @ApiProperty()
-  @IsNotEmpty()
-  @IsInt()
-  expiresIn: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
   @IsString()
   spotifyDeviceId: string;
 }

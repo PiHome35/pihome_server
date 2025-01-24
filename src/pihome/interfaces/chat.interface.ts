@@ -4,7 +4,8 @@ export interface Chat {
   id?: string;
   familyId: string;
   name: string;
-  latestMessageId?: string;
+  // latestMessage?: Message;
+  latestMessageId: string;
   createdAt: Date;
   updatedAt: Date;
 }

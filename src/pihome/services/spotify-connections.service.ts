@@ -15,7 +15,6 @@ export class SpotifyConnectionsService {
   async createSpotifyConnection(
     accessToken: string,
     refreshToken: string,
-    expiresIn: number,
     spotifyDeviceId: string,
     familyId: string,
   ): Promise<SpotifyConnection> {
@@ -26,16 +25,15 @@ export class SpotifyConnectionsService {
     if (!family) {
       throw new NotFoundException('Family not found');
     }
-    if (family.spotifyConnection) {
+    if (family.spotifyConnection != null) {
       throw new BadRequestException('Family already has a Spotify connection');
     }
     const spotifyConnection = await this.prisma.spotifyConnection.create({
       data: {
         accessToken,
         refreshToken,
-        expiresIn,
         issuedAt: new Date(),
-        spotifyDeviceId,
+        spotifyDeviceId: spotifyDeviceId ?? '1234567890',
         familyId,
       },
     });
@@ -83,10 +81,11 @@ export class SpotifyConnectionsService {
     const { accessToken, refreshToken, expiresIn, issuedAt } = await this.spotifyService.refreshAccessToken(
       spotifyConnection.refreshToken,
       this.configService.get('spotify.clientId'),
+      this.configService.get('spotify.clientSecret'),
     );
     const updatedSpotifyConnection = await this.prisma.spotifyConnection.update({
       where: { id: spotifyConnectionId },
-      data: { accessToken, refreshToken, expiresIn, issuedAt },
+      data: { accessToken, refreshToken, issuedAt },
     });
     return updatedSpotifyConnection;
   }

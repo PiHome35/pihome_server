@@ -10,17 +10,19 @@ import { NewChatDto } from '../models/chat/new-chat.model';
 import { ChatDto } from '../models/chat/chat.model';
 import { PaginationDto } from '../models/chat/pagination.model';
 import { User } from '@prisma/client';
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Resolver('Chat')
-@UseGuards(GqlAuthGuard)
 export class ChatResolver {
+  private readonly logger = new Logger(ChatResolver.name);
   constructor(
     private readonly chatService: ChatService,
     @Inject('PUB_SUB') private readonly pubSub: PubSub,
   ) {}
 
   @Query(() => [ChatDto])
+  @UseGuards(GqlAuthGuard)
   async getAllChatsWithFamilyId(
     @Args('familyId') familyId: string,
     @Args('pagination', { nullable: true }) pagination?: PaginationDto,
@@ -29,6 +31,7 @@ export class ChatResolver {
   }
 
   @Query(() => [MessageDto])
+  @UseGuards(GqlAuthGuard)
   async getChatMessages(
     @Args('chatId') chatId: string,
     @Args('pagination', { nullable: true }) pagination?: PaginationDto,
@@ -37,6 +40,7 @@ export class ChatResolver {
   }
 
   @Mutation(() => ChatDto)
+  @UseGuards(GqlAuthGuard)
   async createNewChat(@Args('familyId') familyId: string, @CurrentClient() user: User): Promise<ChatDto> {
     const newChat = await this.chatService.createChat(familyId);
     console.log('newChat: ', newChat);
@@ -45,6 +49,7 @@ export class ChatResolver {
   }
 
   @Mutation(() => MessageDto)
+  @UseGuards(GqlAuthGuard)
   async addMessage(
     @Args('content') content: string,
     @Args('chatId') chatId: string,
@@ -56,15 +61,28 @@ export class ChatResolver {
       chatId,
     };
     const messageDto = await this.chatService.addMessage(newMessage);
-    this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageDto });
+    await this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageDto });
+
+    const messageAI = await this.chatService.addAiResponse(chatId, content);
+    await this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageAI });
     return messageDto;
   }
 
-  @Subscription(() => MessageDto, { nullable: true })
+  @Subscription(() => MessageDto, {
+    nullable: true,
+    filter: (payload, variables) => payload.messageAdded.chatId === variables.chatId,
+  })
   messageAdded(@Args('chatId') chatId: string) {
-    return this.pubSub.asyncIterableIterator(`messageAdded-${chatId}`);
+    this.logger.log('messageAdded');
+    try {
+      return this.pubSub.asyncIterableIterator(`messageAdded-${chatId}`);
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 
+  @Public()
   @Subscription(() => NewChatDto)
   chatCreated() {
     return this.pubSub.asyncIterableIterator('chatCreated');
