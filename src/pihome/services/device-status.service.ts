@@ -48,7 +48,7 @@ export class DeviceStatusService {
     return new OverviewDeviceStatus({ familyId, deviceGroups: family.deviceGroups, standAloneDevices });
   }
 
-  async publishAffectedStatusUpdates(deviceId: string, statusCascadesToGroup: boolean) {
+  async publishAffectedStatusUpdatesByDevice(deviceId: string, statusCascadesToGroup: boolean) {
     const device = await this.prisma.device.findUnique({
       where: { id: deviceId },
       include: { deviceGroup: { include: { devices: true } } },
@@ -76,6 +76,34 @@ export class DeviceStatusService {
         }),
       });
     }
+  }
+
+  async publishAffectedStatusUpdatesByDeviceGroup(deviceGroupId: string) {
+    const deviceGroup = await this.prisma.deviceGroup.findUnique({
+      where: { id: deviceGroupId },
+      include: { devices: true },
+    });
+    if (!deviceGroup) {
+      throw new NotFoundException('Device group not found');
+    }
+    // DeviceGroupStatus
+    this.pubSub.publish('deviceGroupStatusUpdated', {
+      deviceGroupStatusUpdated: new DeviceGroupStatus(deviceGroup),
+    });
+    // DeviceStatus
+    deviceGroup.devices.forEach((device) => {
+      this.pubSub.publish('deviceStatusUpdated', { deviceStatusUpdated: new DeviceStatus(device) });
+    });
+    // OverviewDeviceStatus
+    const deviceGroups = await this.prisma.deviceGroup.findMany({ where: { familyId: deviceGroup.familyId } });
+    const standAloneDevices = await this.devicesService.listDevicesNotInDeviceGroup(deviceGroup.familyId);
+    this.pubSub.publish('overviewDeviceStatusUpdated', {
+      overviewDeviceStatusUpdated: new OverviewDeviceStatus({
+        familyId: deviceGroup.familyId,
+        deviceGroups,
+        standAloneDevices,
+      }),
+    });
   }
 
   async setDeviceMuted(deviceId: string, isMuted: boolean): Promise<Device> {
@@ -108,7 +136,7 @@ export class DeviceStatusService {
       });
     }
     // publish affected status updates
-    await this.publishAffectedStatusUpdates(deviceId, true);
+    await this.publishAffectedStatusUpdatesByDevice(deviceId, true);
     return updatedDevice;
   }
 
@@ -122,7 +150,7 @@ export class DeviceStatusService {
       data: { volumePercent },
     });
     // publish affected status updates
-    await this.publishAffectedStatusUpdates(deviceId, false);
+    await this.publishAffectedStatusUpdatesByDevice(deviceId, false);
     return updatedDevice;
   }
 
@@ -134,7 +162,7 @@ export class DeviceStatusService {
     } else {
       // device comes online after being offline, or device reports heartbeat for the first time
       // publish affected status updates
-      await this.publishAffectedStatusUpdates(deviceId, false);
+      await this.publishAffectedStatusUpdatesByDevice(deviceId, false);
     }
     this.deviceHeartbeatTimeouts.set(
       deviceId,
@@ -149,7 +177,7 @@ export class DeviceStatusService {
     const device = await this.prisma.device.update({ where: { id: deviceId }, data: { isOn: false } });
     this.deviceHeartbeatTimeouts.delete(deviceId);
     // device goes offline, publish affected status updates
-    await this.publishAffectedStatusUpdates(deviceId, false);
+    await this.publishAffectedStatusUpdatesByDevice(deviceId, false);
   }
 
   async setDeviceGroupMuted(deviceGroupId: string, isMuted: boolean): Promise<DeviceGroup & { devices: Device[] }> {
@@ -167,6 +195,7 @@ export class DeviceStatusService {
       where: { id: deviceGroupId },
       include: { devices: true },
     });
+    await this.publishAffectedStatusUpdatesByDeviceGroup(deviceGroupId);
     return updatedDeviceGroup;
   }
 }
