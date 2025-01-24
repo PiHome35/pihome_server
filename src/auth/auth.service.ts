@@ -69,11 +69,16 @@ export class AuthService {
     return { user, login };
   }
 
-  async registerDevice(userId: string, clientId: string, name: string): Promise<RegisterDeviceResponse> {
+  async registerDevice(
+    userId: string,
+    clientId: string,
+    macAddress: string,
+    name: string,
+  ): Promise<RegisterDeviceResponse> {
     const user = await this.usersService.getUser(userId);
     if (!user.familyId) {
       throw new BadRequestException('User is not in a family');
     }
-    return this.devicesService.createDevice(clientId, name, user.familyId);
+    return this.devicesService.createDevice(clientId, macAddress, name, user.familyId);
   }
 }

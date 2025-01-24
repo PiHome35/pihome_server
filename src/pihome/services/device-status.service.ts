@@ -126,12 +126,14 @@ export class DeviceStatusService {
     return updatedDevice;
   }
 
-  async receiveDeviceHeartbeat(deviceId: string): Promise<void> {
+  async receiveDeviceHeartbeat(deviceId: string): Promise<Device> {
     const device = await this.prisma.device.update({ where: { id: deviceId }, data: { isOn: true } });
     if (this.deviceHeartbeatTimeouts.has(deviceId)) {
       clearTimeout(this.deviceHeartbeatTimeouts.get(deviceId));
+      this.deviceHeartbeatTimeouts.delete(deviceId);
     } else {
-      // device comes online after being offline, publish affected status updates
+      // device comes online after being offline, or device reports heartbeat for the first time
+      // publish affected status updates
       await this.publishAffectedStatusUpdates(deviceId, false);
     }
     this.deviceHeartbeatTimeouts.set(
@@ -140,6 +142,7 @@ export class DeviceStatusService {
         this.markDeviceAsOffline(deviceId);
       }, 1000 * 60),
     );
+    return device;
   }
 
   async markDeviceAsOffline(deviceId: string): Promise<void> {

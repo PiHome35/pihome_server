@@ -33,6 +33,7 @@ type DeviceStatus {
   id: ID!
   isMuted: Boolean!
   isOn: Boolean!
+  macAddress: String!
   name: String!
   volumePercent: Int!
 }
@@ -48,6 +49,7 @@ type MessageDto {
 type Mutation {
   addMessage(chatId: String!, content: String!): MessageDto!
   createNewChat(familyId: String!): ChatDto!
+  heartbeat(deviceId: String!): DeviceStatus!
   setDeviceGroupMuted(input: SetMuteGroupInput!): DeviceGroupStatus!
   setDeviceMuted(input: SetMuteDeviceInput!): DeviceStatus!
   setDeviceVolume(input: SetVolumeDeviceInput!): DeviceStatus!

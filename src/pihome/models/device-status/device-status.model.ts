@@ -6,6 +6,9 @@ export class DeviceStatus {
   id: string;
 
   @Field()
+  macAddress: string;
+
+  @Field()
   name: string;
 
   @Field()
