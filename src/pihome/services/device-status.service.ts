@@ -118,21 +118,20 @@ export class DeviceStatusService {
       where: { id: deviceId },
       data: { isMuted },
     });
-    if (!device.deviceGroup) {
-      return updatedDevice;
-    }
-    // if the device was set isMuted = true, cascade mute to device group if all devices in group are muted
-    if (isMuted && device.deviceGroup.devices.every((device) => device.isMuted === true)) {
-      await this.prisma.deviceGroup.update({
-        where: { id: device.deviceGroup.id },
-        data: { isMuted: true },
-      });
-    } else if (!isMuted) {
-      // if the device was set isMuted = false, cascade unmute to device group
-      await this.prisma.deviceGroup.update({
-        where: { id: device.deviceGroup.id },
-        data: { isMuted: false },
-      });
+    if (device.deviceGroup) {
+      // if the device was set isMuted = true, cascade mute to device group if all devices in group are muted
+      if (isMuted && device.deviceGroup.devices.every((device) => device.isMuted === true)) {
+        await this.prisma.deviceGroup.update({
+          where: { id: device.deviceGroup.id },
+          data: { isMuted: true },
+        });
+      } else if (!isMuted) {
+        // if the device was set isMuted = false, cascade unmute to device group
+        await this.prisma.deviceGroup.update({
+          where: { id: device.deviceGroup.id },
+          data: { isMuted: false },
+        });
+      }
     }
     // publish affected status updates
     await this.publishAffectedStatusUpdatesByDevice(deviceId, true);
