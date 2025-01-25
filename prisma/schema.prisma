@@ -43,6 +43,7 @@ model Device {
   id               String       @id @default(uuid())
   clientId         String       @unique @map("client_id")
   clientSecretHash String       @map("client_secret_hash")
+  macAddress       String       @unique @map("mac_address")
   name             String
   isOn             Boolean      @map("is_on")
   isMuted          Boolean      @map("is_muted")

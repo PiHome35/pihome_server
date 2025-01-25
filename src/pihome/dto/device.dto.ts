@@ -12,6 +12,9 @@ export class DeviceResponseDto {
   clientSecretHash: string;
 
   @ApiProperty()
+  macAddress: string;
+
+  @ApiProperty()
   name: string;
 
   @ApiProperty()

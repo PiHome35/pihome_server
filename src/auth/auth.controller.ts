@@ -31,7 +31,12 @@ export class AuthController {
   @ApiCreatedResponse({ type: RegisterDeviceResponseDto })
   async registerDevice(@Req() req: any, @Body() body: RegisterDeviceRequestDto): Promise<RegisterDeviceResponseDto> {
     const currentUser = req.user as ClientContext;
-    const registerDeviceResponse = await this.authService.registerDevice(currentUser.sub, body.clientId, body.name);
+    const registerDeviceResponse = await this.authService.registerDevice(
+      currentUser.sub,
+      body.clientId,
+      body.macAddress,
+      body.name,
+    );
     return new RegisterDeviceResponseDto(registerDeviceResponse);
   }
 

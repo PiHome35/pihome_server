@@ -10,6 +10,7 @@ export class DevicesService {
 
   async createDevice(
     clientId: string,
+    macAddress: string,
     name: string,
     familyId: string,
   ): Promise<{ device: Device; clientSecret: string }> {
@@ -28,6 +29,7 @@ export class DevicesService {
       data: {
         clientId,
         clientSecretHash: await argon2.hash(clientSecret),
+        macAddress,
         name,
         isOn: true,
         isMuted: false,

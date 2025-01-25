@@ -12,6 +12,11 @@ export class RegisterDeviceRequestDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
+  macAddress: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   name: string;
 }
 

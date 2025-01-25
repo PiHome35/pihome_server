@@ -24,6 +24,11 @@ export class DeviceStatusResolver {
   }
 
   @Mutation(() => DeviceStatus)
+  async heartbeat(@Args('deviceId') deviceId: string) {
+    return this.deviceStatusService.receiveDeviceHeartbeat(deviceId);
+  }
+
+  @Mutation(() => DeviceStatus)
   async setDeviceMuted(@Args('input') input: SetMuteDeviceInput): Promise<DeviceStatus> {
     return this.deviceStatusService.setDeviceMuted(input.deviceId, input.isMuted);
   }
