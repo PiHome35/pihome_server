@@ -8,10 +8,10 @@ import { SetVolumeDeviceInput } from '../models/device-status/set-volume-device.
 import { DeviceStatusService } from '../services/device-status.service';
 import { OverviewDeviceStatus } from '../models/device-status/overview-device-status.model';
 import { SetMuteGroupInput } from '../models/device-status/set-mute-group.input';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
+// import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
 
 @Resolver('DeviceStatus')
-@UseGuards(GqlAuthGuard)
+// @UseGuards(GqlAuthGuard)
 export class DeviceStatusResolver {
   constructor(
     private deviceStatusService: DeviceStatusService,

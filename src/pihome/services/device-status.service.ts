@@ -107,7 +107,10 @@ export class DeviceStatusService {
   }
 
   async setDeviceMuted(deviceId: string, isMuted: boolean): Promise<Device> {
-    const device = await this.prisma.device.findUnique({ where: { id: deviceId } });
+    const device = await this.prisma.device.findUnique({
+      where: { id: deviceId },
+      include: { deviceGroup: { include: { devices: true } } },
+    });
     if (!device) {
       throw new NotFoundException('Device not found');
     }
@@ -115,23 +118,19 @@ export class DeviceStatusService {
       where: { id: deviceId },
       data: { isMuted },
     });
-    const deviceGroup = await this.prisma.deviceGroup.findUnique({
-      where: { id: device.deviceGroupId },
-      include: { devices: true },
-    });
-    if (!deviceGroup) {
+    if (!device.deviceGroup) {
       return updatedDevice;
     }
     // if the device was set isMuted = true, cascade mute to device group if all devices in group are muted
-    if (isMuted && deviceGroup.devices.every((device) => device.isMuted === true)) {
+    if (isMuted && device.deviceGroup.devices.every((device) => device.isMuted === true)) {
       await this.prisma.deviceGroup.update({
-        where: { id: deviceGroup.id },
+        where: { id: device.deviceGroup.id },
         data: { isMuted: true },
       });
     } else if (!isMuted) {
       // if the device was set isMuted = false, cascade unmute to device group
       await this.prisma.deviceGroup.update({
-        where: { id: deviceGroup.id },
+        where: { id: device.deviceGroup.id },
         data: { isMuted: false },
       });
     }
