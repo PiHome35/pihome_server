@@ -1,12 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { Device, DeviceGroup, Family } from '@prisma/client';
 import { generateRandomSecret } from 'src/utils/random.util';
 import * as argon2 from 'argon2';
+import { DeviceStatus } from '../models/device-status/device-status.model';
+import { PubSub } from 'graphql-subscriptions';
 
 @Injectable()
 export class DevicesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject('PUB_SUB') private pubSub: PubSub,
+  ) {}
 
   async createDevice(
     clientId: string,
@@ -98,7 +103,26 @@ export class DevicesService {
     if (!device) {
       throw new NotFoundException('Device not found');
     }
+    // gracefully remove sound server status
+    await this.prisma.device.update({ where: { id: deviceId }, data: { isSoundServer: false } });
+    this.pubSub.publish('deviceStatusUpdated', { deviceStatusUpdated: new DeviceStatus(device) });
+    // delete device
     await this.prisma.device.delete({ where: { id: deviceId } });
+    await this.assignDeviceAsSoundServerIfAny(device.familyId);
+  }
+
+  async assignDeviceAsSoundServerIfAny(familyId: string): Promise<Device | null> {
+    const existingSoundServer = await this.prisma.device.findFirst({ where: { familyId, isSoundServer: true } });
+    if (existingSoundServer) {
+      return existingSoundServer; // sound server already exists
+    }
+    const device = await this.prisma.device.findFirst({ where: { familyId } });
+    if (!device) {
+      return null; // no device to assign as sound server
+    }
+    await this.prisma.device.update({ where: { id: device.id }, data: { isSoundServer: true } });
+    this.pubSub.publish('deviceStatusUpdated', { deviceStatusUpdated: new DeviceStatus(device) }); // only publish single device status update
+    return device;
   }
 
   async deviceExistsWithClientId(clientId: string): Promise<boolean> {

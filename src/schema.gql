@@ -33,6 +33,7 @@ type DeviceStatus {
   id: ID!
   isMuted: Boolean!
   isOn: Boolean!
+  isSoundServer: Boolean!
   macAddress: String!
   name: String!
   volumePercent: Int!

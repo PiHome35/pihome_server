@@ -20,6 +20,9 @@ export class DeviceStatus {
   @Field((type) => Int)
   volumePercent: number;
 
+  @Field()
+  isSoundServer: boolean;
+
   constructor(partial: Partial<DeviceStatus>) {
     Object.assign(this, partial);
   }
