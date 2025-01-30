@@ -47,4 +47,7 @@ export class ChatDto {
   @IsDate()
   @Type(() => Date)
   updatedAt: Date;
+
+  @Field(() => String, { nullable: true })
+  deviceId?: string;
 }

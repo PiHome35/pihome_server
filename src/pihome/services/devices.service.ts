@@ -5,11 +5,13 @@ import { generateRandomSecret } from 'src/utils/random.util';
 import * as argon2 from 'argon2';
 import { DeviceStatus } from '../models/device-status/device-status.model';
 import { PubSub } from 'graphql-subscriptions';
+import { ChatService } from './chat.service';
 
 @Injectable()
 export class DevicesService {
   constructor(
     private prisma: PrismaService,
+    private chatService: ChatService,
     @Inject('PUB_SUB') private pubSub: PubSub,
   ) {}
 
@@ -43,6 +45,10 @@ export class DevicesService {
         familyId,
       },
     });
+
+    // Create device chat
+    await this.chatService.createDeviceChat(device);
+
     return { device, clientSecret };
   }
 
@@ -103,6 +109,9 @@ export class DevicesService {
     if (!device) {
       throw new NotFoundException('Device not found');
     }
+    // Delete device chat
+    await this.chatService.deleteDeviceChat(deviceId);
+
     // gracefully remove sound server status
     await this.prisma.device.update({ where: { id: deviceId }, data: { isSoundServer: false } });
     this.pubSub.publish('deviceStatusUpdated', { deviceStatusUpdated: new DeviceStatus(device) });
