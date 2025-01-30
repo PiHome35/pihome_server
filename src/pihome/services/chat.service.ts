@@ -8,14 +8,15 @@ import { MongoService } from 'src/database/mongo.service';
 import { NewChatDto } from '../models/chat/new-chat.model';
 import { PaginationDto } from '../models/chat/pagination.model';
 import { Chat } from '../interfaces/chat.interface';
-import { GeminiLangchainService } from 'src/agent/gemini/gemini-langchain.service';
+import { AgentService } from 'src/agent/agent.service';
+import { ModelAIName } from 'src/agent/constants/model';
+
 @Injectable()
 export class ChatService {
   constructor(
     private readonly mongoService: MongoService,
-    private readonly geminiService: GeminiLangchainService,
+    private readonly agentService: AgentService,
   ) {}
-
   private async updateChatLatestMessage(message: Message): Promise<void> {
     const db = this.mongoService.getDb();
     await db.collection<Chat>('chats').updateOne(
@@ -79,19 +80,24 @@ export class ChatService {
       throw new Error('Chat not found');
     }
 
-    // First save user message
     const userMessageDto = await this.saveMessage(message);
     return userMessageDto;
   }
 
-  async addAiResponse(chatId: string, userMessageContent: string): Promise<MessageDto> {
+  async addAiResponse(chatId: string, userMessageContent: string, chatModelId: string): Promise<MessageDto> {
     const db = this.mongoService.getDb();
     const chat = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(chatId) });
     if (!chat) {
       throw new Error('Chat not found');
     }
     const aiId: string = 'cb99a5c3-651e-4958-bf41-6c8f2d7ca40c';
-    const aiResponseText = await this.geminiService.processMessage(userMessageContent);
+    const familyId: string = chat.familyId;
+    console.log('familyId', familyId);
+    const aiResponseText = await this.agentService.processMessage(
+      userMessageContent,
+      familyId,
+      ModelAIName.GEMINI_FLASH,
+    );
 
     const aiMessage: NewMessageInput = {
       chatId,

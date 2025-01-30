@@ -54,6 +54,7 @@ export class ChatResolver {
     @Args('content') content: string,
     @Args('chatId') chatId: string,
     @CurrentClient() user: { clientType: string; sub: string },
+    // @Args('modelConfig', { nullable: true }) modelConfig?: OpenRouterModelConfigInput,
   ): Promise<MessageDto> {
     const newMessage: NewMessageInput = {
       content,
@@ -63,11 +64,12 @@ export class ChatResolver {
     const messageDto = await this.chatService.addMessage(newMessage);
     await this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageDto });
 
-    const messageAI = await this.chatService.addAiResponse(chatId, content);
+    const messageAI = await this.chatService.addAiResponse(chatId, content, '1234');
     await this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageAI });
     return messageDto;
   }
 
+  // @Public()
   @Subscription(() => MessageDto, {
     nullable: true,
     filter: (payload, variables) => payload.messageAdded.chatId === variables.chatId,
