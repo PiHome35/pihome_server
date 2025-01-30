@@ -87,4 +87,10 @@ export class ChatResolver {
   chatCreated() {
     return this.pubSub.asyncIterableIterator('chatCreated');
   }
+
+  @Query(() => ChatDto)
+  @UseGuards(GqlAuthGuard)
+  async getDeviceChat(@Args('deviceId') deviceId: string): Promise<ChatDto> {
+    return this.chatService.getDeviceChat(deviceId);
+  }
 }

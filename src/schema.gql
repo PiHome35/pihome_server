@@ -4,6 +4,7 @@
 
 type ChatDto {
   createdAt: DateTime!
+  deviceId: String
   familyId: String!
   id: String!
   latestMessage: MessageDto
@@ -76,6 +77,7 @@ input PaginationDto {
 type Query {
   getAllChatsWithFamilyId(familyId: String!, pagination: PaginationDto): [ChatDto!]!
   getChatMessages(chatId: String!, pagination: PaginationDto): [MessageDto!]!
+  getDeviceChat(deviceId: String!): ChatDto!
   getDeviceGroupStatus(deviceGroupId: String!): DeviceGroupStatus!
   getDeviceStatus(deviceId: String!): DeviceStatus!
   getOverviewDeviceStatus(familyId: String!): OverviewDeviceStatus!

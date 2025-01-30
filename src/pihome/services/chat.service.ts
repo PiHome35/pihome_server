@@ -9,6 +9,8 @@ import { NewChatDto } from '../models/chat/new-chat.model';
 import { PaginationDto } from '../models/chat/pagination.model';
 import { Chat } from '../interfaces/chat.interface';
 import { GeminiLangchainService } from 'src/agent/gemini/gemini-langchain.service';
+import { Device } from '@prisma/client';
+
 @Injectable()
 export class ChatService {
   constructor(
@@ -48,6 +50,35 @@ export class ChatService {
       senderId: newMessage.senderId,
       createdAt: newMessage.createdAt,
     };
+  }
+
+  async createDeviceChat(device: Device): Promise<ChatDto> {
+    const db = this.mongoService.getDb();
+    const newChat: Omit<Chat, 'id'> = {
+      familyId: device.familyId,
+      name: `${device.name} Chat`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      latestMessageId: null,
+      deviceId: device.id,
+    };
+
+    const chat = await db.collection<Chat>('chats').insertOne(newChat);
+    const newChatDto: ChatDto = {
+      id: chat.insertedId.toString(),
+      name: newChat.name,
+      familyId: newChat.familyId,
+      latestMessage: null,
+      createdAt: newChat.createdAt,
+      updatedAt: newChat.updatedAt,
+      deviceId: newChat.deviceId,
+    };
+    return newChatDto;
+  }
+
+  async deleteDeviceChat(deviceId: string): Promise<void> {
+    const db = this.mongoService.getDb();
+    await db.collection<Chat>('chats').deleteOne({ deviceId });
   }
 
   async createChat(familyId: string): Promise<ChatDto> {
@@ -153,6 +184,7 @@ export class ChatService {
           latestMessage,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt,
+          deviceId: chat.deviceId,
         };
       }),
     );
@@ -191,10 +223,46 @@ export class ChatService {
           latestMessage,
           createdAt: chat.createdAt,
           updatedAt: chat.updatedAt,
+          deviceId: chat.deviceId,
         };
       }),
     );
 
     return response;
+  }
+
+  async getDeviceChat(deviceId: string): Promise<ChatDto> {
+    const db = this.mongoService.getDb();
+    const chat = await db.collection<Chat>('chats').findOne({ deviceId });
+
+    if (!chat) {
+      throw new Error('Device chat not found');
+    }
+
+    let latestMessage = null;
+    if (chat.latestMessageId) {
+      const message = await db
+        .collection<Message>('chat_messages')
+        .findOne({ _id: new ObjectId(chat.latestMessageId) });
+      if (message) {
+        latestMessage = {
+          id: message._id.toString(),
+          content: message.content,
+          senderId: message.senderId,
+          chatId: chat._id.toString(),
+          createdAt: message.createdAt,
+        };
+      }
+    }
+
+    return {
+      id: chat._id.toString(),
+      familyId: chat.familyId,
+      name: chat.name,
+      latestMessage,
+      createdAt: chat.createdAt,
+      updatedAt: chat.updatedAt,
+      deviceId: chat.deviceId,
+    };
   }
 }

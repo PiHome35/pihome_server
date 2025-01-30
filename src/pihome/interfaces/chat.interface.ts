@@ -8,4 +8,5 @@ export interface Chat {
   latestMessageId: string;
   createdAt: Date;
   updatedAt: Date;
+  deviceId?: string;
 }
