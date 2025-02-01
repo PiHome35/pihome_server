@@ -5,10 +5,8 @@ import { MessageDto } from '../models/chat/message.model';
 import { ChatDto } from '../models/chat/chat.model';
 import { NewMessageInput } from '../models/chat/newMessage.input';
 import { MongoService } from 'src/database/mongo.service';
-import { NewChatDto } from '../models/chat/new-chat.model';
 import { PaginationDto } from '../models/chat/pagination.model';
 import { Chat } from '../interfaces/chat.interface';
-import { GeminiLangchainService } from 'src/agent/gemini/gemini-langchain.service';
 import { Device } from '@prisma/client';
 
 import { AgentService } from 'src/agent/agent.service';
@@ -83,11 +81,11 @@ export class ChatService {
     await db.collection<Chat>('chats').deleteOne({ deviceId });
   }
 
-  async createChat(familyId: string): Promise<ChatDto> {
+  async createChat(familyId: string, name: string = 'New Chat'): Promise<ChatDto> {
     const db = this.mongoService.getDb();
     const newChat: Omit<Chat, 'id'> = {
       familyId,
-      name: 'New Chat',
+      name,
       createdAt: new Date(),
       updatedAt: new Date(),
       latestMessageId: null,
@@ -105,6 +103,28 @@ export class ChatService {
     return newChatDto;
   }
 
+  async deleteChat(chatId: string): Promise<string> {
+    const db = this.mongoService.getDb();
+    try {
+      // Find chat before deletion
+      const chatTarget = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(chatId) });
+      if (!chatTarget) {
+        throw new Error('Chat not found');
+      }
+
+      // Delete the chat
+      await db.collection<Chat>('chats').deleteOne({ _id: chatTarget._id });
+
+      // Delete all messages associated with this chat
+      await db.collection<Message>('chat_messages').deleteMany({ chatId });
+
+      return chatId;
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      throw new Error('Failed to delete chat');
+    }
+  }
+
   async addMessage(message: NewMessageInput): Promise<MessageDto> {
     const db = this.mongoService.getDb();
     const chat = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(message.chatId) });
@@ -117,28 +137,40 @@ export class ChatService {
   }
 
   async addAiResponse(chatId: string, userMessageContent: string, chatModelId: string): Promise<MessageDto> {
-    const db = this.mongoService.getDb();
-    const chat = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(chatId) });
-    if (!chat) {
-      throw new Error('Chat not found');
+    try {
+      const db = this.mongoService.getDb();
+      const chat = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(chatId) });
+      if (!chat) {
+        throw new Error('Chat not found');
+      }
+      const aiId: string = 'cb99a5c3-651e-4958-bf41-6c8f2d7ca40c';
+      const familyId: string = chat.familyId;
+
+      let aiResponseText: string;
+      try {
+        aiResponseText = await this.agentService.processMessage(
+          userMessageContent,
+          familyId,
+          chatId,
+          ModelAIName.GEMINI_FLASH,
+        );
+      } catch (aiError) {
+        console.error('AI Processing Error:', aiError);
+        aiResponseText = "I'm sorry, I'm having trouble processing your message right now.";
+      }
+
+      const aiMessage: NewMessageInput = {
+        chatId,
+        senderId: aiId,
+        content: aiResponseText,
+      };
+
+      const aiMessageDto = await this.saveMessage(aiMessage);
+      return aiMessageDto;
+    } catch (error) {
+      console.error('Error in addAiResponse:', error);
+      throw new Error('Failed to process AI response');
     }
-    const aiId: string = 'cb99a5c3-651e-4958-bf41-6c8f2d7ca40c';
-    const familyId: string = chat.familyId;
-    console.log('familyId', familyId);
-    const aiResponseText = await this.agentService.processMessage(
-      userMessageContent,
-      familyId,
-      ModelAIName.GEMINI_FLASH,
-    );
-
-    const aiMessage: NewMessageInput = {
-      chatId,
-      senderId: aiId,
-      content: aiResponseText,
-    };
-
-    const aiMessageDto = await this.saveMessage(aiMessage);
-    return aiMessageDto;
   }
 
   async getChatMessages(chatId: string, pagination?: PaginationDto): Promise<MessageDto[]> {
@@ -162,44 +194,7 @@ export class ChatService {
     }));
   }
 
-  async getChats(): Promise<ChatDto[]> {
-    const db = this.mongoService.getDb();
-    const chats = await db.collection<Chat>('chats').find({}).toArray();
-
-    const response: ChatDto[] = await Promise.all(
-      chats.map(async (chat) => {
-        let latestMessage = null;
-        if (chat.latestMessageId) {
-          const message = await db
-            .collection<Message>('chat_messages')
-            .findOne({ _id: new ObjectId(chat.latestMessageId) });
-          if (message) {
-            latestMessage = {
-              id: message._id.toString(),
-              content: message.content,
-              senderId: message.senderId,
-              chatId: chat.id,
-              createdAt: message.createdAt,
-            };
-          }
-        }
-
-        return {
-          id: chat._id.toString(),
-          familyId: chat.familyId,
-          name: chat.name,
-          latestMessage,
-          createdAt: chat.createdAt,
-          updatedAt: chat.updatedAt,
-          deviceId: chat.deviceId,
-        };
-      }),
-    );
-
-    return response;
-  }
-
-  async getAllChatsWithFamilyId(familyId: string, pagination?: PaginationDto): Promise<ChatDto[]> {
+  async getAllChats(familyId: string, pagination?: PaginationDto): Promise<ChatDto[]> {
     const { limit = 20, skip = 0 } = pagination || {};
     const db = this.mongoService.getDb();
 
@@ -209,9 +204,7 @@ export class ChatService {
       chats.map(async (chat) => {
         let latestMessage = null;
         if (chat.latestMessageId) {
-          const message = await db
-            .collection<Message>('chat_messages')
-            .findOne({ _id: new ObjectId(chat.latestMessageId) });
+          const message = await db.collection<Message>('chat_messages').findOne({ id: chat.latestMessageId });
           if (message) {
             latestMessage = {
               id: message._id.toString(),
@@ -248,9 +241,7 @@ export class ChatService {
 
     let latestMessage = null;
     if (chat.latestMessageId) {
-      const message = await db
-        .collection<Message>('chat_messages')
-        .findOne({ _id: new ObjectId(chat.latestMessageId) });
+      const message = await db.collection<Message>('chat_messages').findOne({ id: chat.latestMessageId });
       if (message) {
         latestMessage = {
           id: message._id.toString(),

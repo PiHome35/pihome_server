@@ -21,5 +21,8 @@ export default () => {
     gemini: {
       apiKey: process.env.GEMINI_API_KEY,
     },
+    openrouter: {
+      apiKey: process.env.OPENROUTER_API_KEY,
+    },
   } as AppConfig;
 };

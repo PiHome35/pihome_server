@@ -21,8 +21,13 @@ export interface AppConfig {
   jwt: JwtConfig;
   spotify: SpotifyConfig;
   gemini: GeminiConfig;
+  openrouter: OpenRouterModelConfig;
 }
 
 export interface GeminiConfig {
+  apiKey: string;
+}
+
+export interface OpenRouterModelConfig {
   apiKey: string;
 }

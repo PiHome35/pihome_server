@@ -30,7 +30,6 @@ export class SpotifyConnectionsController {
     const spotifyConnection = await this.spotifyConnectionsService.createSpotifyConnection(
       body.accessToken,
       body.refreshToken,
-      body.spotifyDeviceId,
       family.id,
     );
     return new SpotifyConnectionResponseDto(spotifyConnection);

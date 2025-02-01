@@ -15,3 +15,10 @@ export class NewChatDto {
   @IsString()
   familyId: string;
 }
+
+@ObjectType()
+export class ChatDeletedDto {
+  @Field()
+  @IsString()
+  chatId: string;
+}

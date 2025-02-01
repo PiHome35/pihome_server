@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { DeviceResponseDto } from 'src/pihome/dto/device.dto';
 
 export class RegisterDeviceRequestDto {
@@ -15,7 +15,8 @@ export class RegisterDeviceRequestDto {
   macAddress: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
+  // @IsNotEmpty()
   @IsString()
   name: string;
 }
@@ -26,6 +27,8 @@ export class RegisterDeviceResponseDto {
   device: DeviceResponseDto;
 
   @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
   clientSecret: string;
 
   constructor(partial: Partial<RegisterDeviceResponseDto>) {

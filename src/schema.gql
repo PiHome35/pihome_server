@@ -2,6 +2,10 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ChatDeletedDto {
+  chatId: String!
+}
+
 type ChatDto {
   createdAt: DateTime!
   deviceId: String
@@ -50,7 +54,8 @@ type MessageDto {
 
 type Mutation {
   addMessage(chatId: String!, content: String!): MessageDto!
-  createNewChat(familyId: String!): ChatDto!
+  createNewChat(familyId: String!, name: String): ChatDto!
+  deleteChat(chatId: String!): ChatDeletedDto!
   heartbeat(deviceId: String!): DeviceStatus!
   setDeviceGroupMuted(input: SetMuteGroupInput!): DeviceGroupStatus!
   setDeviceMuted(input: SetMuteDeviceInput!): DeviceStatus!
@@ -100,6 +105,7 @@ input SetVolumeDeviceInput {
 
 type Subscription {
   chatCreated: NewChatDto!
+  chatDeleted(familyId: String): ChatDeletedDto!
   deviceGroupStatusUpdated(deviceGroupId: String!): DeviceGroupStatus!
   deviceStatusUpdated(deviceId: String!): DeviceStatus!
   messageAdded(chatId: String!): MessageDto

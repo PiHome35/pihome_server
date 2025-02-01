@@ -19,7 +19,7 @@ export class SpotifyConnectionResponseDto {
   issuedAt: Date;
 
   @ApiProperty({ required: false, nullable: true })
-  spotifyDeviceId?: string;
+  deviceId?: string;
 
   @ApiProperty()
   familyId: string;

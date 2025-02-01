@@ -11,8 +11,4 @@ export class CreateFamilySpotifyConnectionRequestDto {
   @IsNotEmpty()
   @IsString()
   refreshToken: string;
-
-  @ApiProperty()
-  @IsString()
-  spotifyDeviceId: string;
 }

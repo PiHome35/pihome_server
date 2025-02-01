@@ -17,12 +17,18 @@ import { SpotifyModule } from 'src/spotify/spotify.module';
 import { ChatModelsService } from './services/chat-models.service';
 import { DeviceStatusResolver } from './resolvers/device-status.resolver';
 import { DeviceStatusService } from './services/device-status.service';
-import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { HttpModule } from '@nestjs/axios';
-import { SpotifyController } from 'src/spotify/spotify.controller';
 import { SpotifyService } from 'src/spotify/spotify.service';
-import { GeminiLangchainService } from 'src/agent/gemini/gemini-langchain.service';
-import { AgentModule } from 'src/agent/agent.module';
+import { AgentModule } from '../agent/agent.module';
+import { SpotifyConnectionsController } from './controllers/spotify-connections.controller';
+import { DevicesController } from './controllers/devices.controller';
+import { DeviceGroupsController } from './controllers/device-groups.controller';
+import { ChatModelsController } from './controllers/chat-models.controller';
+import { PubSubModule } from 'src/pub-sub/pub-sub.module';
+import { MongoService } from 'src/database/mongo.service';
+import { SpotifyTool } from 'src/agent/tools/spotify.tool';
+import { NoteTool } from 'src/agent/tools/note.tool';
+// import { GeminiLangGraphModule } from 'src/agent/gemini/gemini-langgraph.module';
 
 const graphqlModule = GraphQLModule.forRoot<ApolloDriverConfig>({
   driver: ApolloDriver,
@@ -30,21 +36,15 @@ const graphqlModule = GraphQLModule.forRoot<ApolloDriverConfig>({
   installSubscriptionHandlers: true,
   sortSchema: true,
   playground: true,
-  // plugins: [ApolloServerPluginLandingPageLocalDefault()],
   subscriptions: {
     'subscriptions-transport-ws': true,
     'graphql-ws': true,
   },
   context: ({ req }) => ({ req }),
 });
-import { SpotifyConnectionsController } from './controllers/spotify-connections.controller';
-import { DevicesController } from './controllers/devices.controller';
-import { DeviceGroupsController } from './controllers/device-groups.controller';
-import { ChatModelsController } from './controllers/chat-models.controller';
-import { PubSubModule } from 'src/pub-sub/pub-sub.module';
 
 @Module({
-  imports: [DatabaseModule, SpotifyModule, graphqlModule, HttpModule, AgentModule, PubSubModule],
+  imports: [DatabaseModule, SpotifyModule, graphqlModule, HttpModule, PubSubModule, AgentModule],
   providers: [
     UsersService,
     FamiliesService,
@@ -55,11 +55,12 @@ import { PubSubModule } from 'src/pub-sub/pub-sub.module';
     ChatResolver,
     ChatModelsService,
     SpotifyService,
-    GeminiLangchainService,
     {
       provide: 'PUB_SUB',
       useValue: new PubSub(),
     },
+    SpotifyTool,
+    NoteTool,
     DeviceStatusService,
     DeviceStatusResolver,
   ],
@@ -70,7 +71,6 @@ import { PubSubModule } from 'src/pub-sub/pub-sub.module';
     DevicesController,
     DeviceGroupsController,
     ChatModelsController,
-    // SpotifyController,
   ],
   exports: [
     UsersService,

@@ -15,7 +15,6 @@ export class SpotifyConnectionsService {
   async createSpotifyConnection(
     accessToken: string,
     refreshToken: string,
-    spotifyDeviceId: string,
     familyId: string,
   ): Promise<SpotifyConnection> {
     const family = await this.prisma.family.findUnique({
@@ -33,16 +32,29 @@ export class SpotifyConnectionsService {
         accessToken,
         refreshToken,
         issuedAt: new Date(),
-        spotifyDeviceId: spotifyDeviceId ?? '1234567890',
+        spotifyDeviceId: '1',
         familyId,
       },
     });
+    const spotifyDeviceId = await this.spotifyService.getSpotifyDeviceId(familyId);
+    console.log('spotifyDeviceId: ', spotifyDeviceId);
+    await this.updateSpotifyConnection(spotifyConnection.id, spotifyDeviceId);
     return spotifyConnection;
   }
 
   async getSpotifyConnection(spotifyConnectionId: string): Promise<SpotifyConnection> {
     const spotifyConnection = await this.prisma.spotifyConnection.findUnique({
       where: { id: spotifyConnectionId },
+    });
+    if (!spotifyConnection) {
+      throw new NotFoundException('Spotify connection not found');
+    }
+    return spotifyConnection;
+  }
+
+  async getSpotifyConnectionByFamilyId(familyId: string): Promise<SpotifyConnection> {
+    const spotifyConnection = await this.prisma.spotifyConnection.findUnique({
+      where: { familyId },
     });
     if (!spotifyConnection) {
       throw new NotFoundException('Spotify connection not found');
@@ -71,6 +83,24 @@ export class SpotifyConnectionsService {
     await this.prisma.spotifyConnection.delete({ where: { id: spotifyConnectionId } });
   }
 
+  async updateSpotifyConnection(spotifyConnectionId: string, spotifyDeviceId: string): Promise<SpotifyConnection> {
+    const spotifyConnection = await this.prisma.spotifyConnection.findUnique({
+      where: { id: spotifyConnectionId },
+    });
+    console.log('spotifyConnection found: ', spotifyConnection);
+    if (!spotifyConnection) {
+      throw new NotFoundException('Spotify connection not found');
+    }
+
+    return this.prisma.spotifyConnection.update({
+      where: { id: spotifyConnectionId },
+      data: {
+        spotifyDeviceId: spotifyDeviceId,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
   async refreshSpotifyConnection(spotifyConnectionId: string): Promise<SpotifyConnection> {
     const spotifyConnection = await this.prisma.spotifyConnection.findUnique({
       where: { id: spotifyConnectionId },
@@ -89,4 +119,6 @@ export class SpotifyConnectionsService {
     });
     return updatedSpotifyConnection;
   }
+
+  async getSpotifyDevice() {}
 }

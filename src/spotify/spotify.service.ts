@@ -10,19 +10,36 @@ import { SpotifyApi, AccessToken, AuthenticationResponse } from '@spotify/web-ap
 import { ConfigService } from '@nestjs/config';
 import { SpotifyDeviceDto } from 'src/pihome/dto/spotify/devices.response.dto';
 import { PrismaService } from 'src/database/prisma.service';
+import { Device } from '@prisma/client';
 
 interface SpotifyToken {
   accessToken: string;
   refreshToken: string;
-  expiresAt: Date;
-  clientId: string;
 }
 
 @Injectable()
 export class SpotifyService {
   private sdkSpotify: SpotifyApi;
-  private tokenInfo: SpotifyToken | null = null;
-  private readonly REFRESH_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes before expiry
+
+  private isTokenExpired(issuedAt: Date): boolean {
+    const oneHour = 3600 * 1000; // 3600 seconds * 1000 to get milliseconds
+    const expirationTime = new Date(issuedAt.getTime() + oneHour);
+    // Add a 5-minute buffer to refresh token before it actually expires
+    const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+    return new Date() >= new Date(expirationTime.getTime() - bufferTime);
+  }
+
+  private async executeWithTokenRefresh<T>(operation: () => Promise<T>, familyId: string): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error.message?.includes('Bad or expired token')) {
+        await this.initializeSpotifyApi(familyId);
+        return await operation();
+      }
+      throw error;
+    }
+  }
 
   constructor(
     private readonly httpService: HttpService,
@@ -32,35 +49,33 @@ export class SpotifyService {
 
   async initializeSpotifyApi(familyId: string): Promise<void> {
     const spotifyConnection = await this.findTokenByFamilyId(familyId);
-    console.log('spotifyConnection: ', spotifyConnection);
-    console.log('this.configService.get("spotify.clientId")', this.configService.get('spotify.clientId'));
-    console.log('this.configService.get("spotify.clientSecret")', this.configService.get('spotify.clientSecret'));
-
-    const newRefreshToken = await this.refreshAccessToken(
-      spotifyConnection.refreshToken,
-      this.configService.get('spotify.clientId'),
-      this.configService.get('spotify.clientSecret'),
-    );
-    this.sdkSpotify = SpotifyApi.withAccessToken(this.configService.get('spotify.clientId'), {
-      access_token: newRefreshToken.accessToken,
-      token_type: 'Bearer',
-      expires_in: newRefreshToken.expiresIn,
-      refresh_token: newRefreshToken.refreshToken,
-    });
-  }
-
-  private async updateSpotifyApi(): Promise<void> {
-    if (!this.tokenInfo) return;
-
-    const accessToken: AccessToken = {
-      access_token: this.tokenInfo.accessToken,
-      token_type: 'Bearer',
-      expires_in: 3600,
-      refresh_token: this.tokenInfo.refreshToken,
-    };
-
-    this.sdkSpotify = SpotifyApi.withAccessToken(this.tokenInfo.clientId, accessToken);
-    console.log('sdkSpotify: ', this.sdkSpotify);
+    if (this.isTokenExpired(spotifyConnection.issuedAt)) {
+      const newToken = await this.refreshAccessToken(
+        spotifyConnection.refreshToken,
+        this.configService.get('spotify.clientId'),
+        this.configService.get('spotify.clientSecret'),
+      );
+      await this.updateTokenInDatabase(
+        {
+          accessToken: newToken.accessToken,
+          refreshToken: newToken.refreshToken || spotifyConnection.refreshToken,
+        },
+        newToken.issuedAt,
+      );
+      this.sdkSpotify = SpotifyApi.withAccessToken(this.configService.get('spotify.clientId'), {
+        access_token: newToken.accessToken,
+        token_type: 'Bearer',
+        expires_in: 3600,
+        refresh_token: newToken.refreshToken || spotifyConnection.refreshToken,
+      });
+    } else {
+      this.sdkSpotify = SpotifyApi.withAccessToken(this.configService.get('spotify.clientId'), {
+        access_token: spotifyConnection.accessToken,
+        token_type: 'Bearer',
+        expires_in: 3600,
+        refresh_token: spotifyConnection.refreshToken,
+      });
+    }
   }
 
   private async updateTokenInDatabase(tokenInfo: SpotifyToken, issuedAt: Date): Promise<void> {
@@ -76,142 +91,135 @@ export class SpotifyService {
     });
   }
 
-  async searchTrack(query: string) {
+  async searchTrack(familyId: string, query: string) {
+    await this.initializeSpotifyApi(familyId);
+    return this.executeWithTokenRefresh(() => this.sdkSpotify.search(query, ['track']), familyId);
+  }
+
+  async getFirstTrackUri(familyId: string, query: string): Promise<string | null> {
+    await this.initializeSpotifyApi(familyId);
+    const result = await this.executeWithTokenRefresh(
+      () => this.sdkSpotify.search(query, ['track'], 'TH', 1),
+      familyId,
+    );
+    if (result.tracks.items.length > 0) {
+      return result.tracks.items[0].uri;
+    }
+    return null;
+  }
+
+  async isPlaying(familyId: string): Promise<boolean> {
+    await this.initializeSpotifyApi(familyId);
+    const playbackState = await this.executeWithTokenRefresh(() => this.sdkSpotify.player.getPlaybackState(), familyId);
+    return playbackState?.is_playing ?? false;
+  }
+
+  async getCurrentQueue(familyId: string) {
+    await this.initializeSpotifyApi(familyId);
+    return this.executeWithTokenRefresh(() => this.sdkSpotify.player.getUsersQueue(), familyId);
+  }
+
+  async getAvailableDevices(familyId: string): Promise<SpotifyDeviceDto[]> {
+    await this.initializeSpotifyApi(familyId);
+    const devices = await this.executeWithTokenRefresh(() => this.sdkSpotify.player.getAvailableDevices(), familyId);
+    return devices.devices.map((device) => ({
+      id: device.id,
+      is_active: device.is_active,
+      is_private_session: device.is_private_session,
+      is_restricted: device.is_restricted,
+      name: device.name,
+      type: device.type,
+      volume_percent: device.volume_percent,
+    }));
+  }
+
+  async playTrack(familyId: string, trackUri: string, deviceId?: string) {
+    await this.initializeSpotifyApi(familyId);
+    await this.executeWithTokenRefresh(
+      () => this.sdkSpotify.player.startResumePlayback(deviceId, undefined, [trackUri]),
+      familyId,
+    );
+  }
+
+  async queueTrack(familyId: string, trackUri: string) {
+    await this.initializeSpotifyApi(familyId);
+    await this.executeWithTokenRefresh(() => this.sdkSpotify.player.addItemToPlaybackQueue(trackUri), familyId);
+  }
+
+  async seeQueue(familyId: string) {
+    await this.initializeSpotifyApi(familyId);
+    const queue = await this.executeWithTokenRefresh(() => this.sdkSpotify.player.getUsersQueue(), familyId);
+    console.log('queue', queue);
+  }
+
+  async play(familyId: string, deviceId?: string) {
+    await this.initializeSpotifyApi(familyId);
+    const contextUri = await this.getCurrentlyPlayingTrackUri(familyId);
     try {
-      const result = await this.sdkSpotify.search(query, ['track']);
-      return result;
+      const response = await this.executeWithTokenRefresh(
+        () => this.sdkSpotify.player.startResumePlayback(deviceId),
+        familyId,
+      );
     } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        return await this.sdkSpotify.search(query, ['track']);
-      }
-      throw error;
+      console.log('error play', error);
     }
   }
 
-  async getFirstTrackUri(query: string): Promise<string | null> {
+  async pause(familyId: string, deviceId?: string) {
+    await this.initializeSpotifyApi(familyId);
+    // const contextUri = await this.getCurrentlyPlayingTrackUri(familyId);
     try {
-      const result = await this.sdkSpotify.search(query, ['track'], 'TH', 1);
-      if (result.tracks.items.length > 0) {
-        return result.tracks.items[0].uri;
-      }
-      return null;
+      const response = await this.executeWithTokenRefresh(
+        () => this.sdkSpotify.player.pausePlayback(deviceId),
+        familyId,
+      );
     } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        return this.getFirstTrackUri(query);
-      }
-      throw error;
+      console.log('error pause', error);
     }
   }
 
-  async isPlaying(): Promise<boolean> {
-    try {
-      const playbackState = await this.sdkSpotify.player.getPlaybackState();
-      return playbackState?.is_playing ?? false;
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        return this.isPlaying();
-      }
-      throw error;
-    }
+  async next(familyId: string, deviceId?: string) {
+    await this.initializeSpotifyApi(familyId);
+    await this.executeWithTokenRefresh(() => this.sdkSpotify.player.skipToNext(deviceId), familyId);
   }
 
-  async getCurrentQueue() {
-    try {
-      return await this.sdkSpotify.player.getUsersQueue();
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        return this.getCurrentQueue();
-      }
-      throw error;
-    }
+  async previous(familyId: string, deviceId?: string) {
+    await this.initializeSpotifyApi(familyId);
+    await this.executeWithTokenRefresh(() => this.sdkSpotify.player.skipToPrevious(deviceId), familyId);
   }
 
-  async getAvailableDevices(): Promise<SpotifyDeviceDto[]> {
-    try {
-      await this.initializeSpotifyApi('1835bcd9-1bec-449e-a979-997ab8bf09cf');
-      const devices = await this.sdkSpotify.player.getAvailableDevices();
-      return devices.devices.map((device) => ({
-        id: device.id,
-        is_active: device.is_active,
-        is_private_session: device.is_private_session,
-        is_restricted: device.is_restricted,
-        name: device.name,
-        type: device.type,
-        volume_percent: device.volume_percent,
-      }));
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        console.log('Bad or expired token');
-      }
-      console.error('Failed to fetch Spotify devices:', error);
-      throw new Error('Failed to fetch available Spotify devices');
-    }
+  async getCurrentlyPlayingTrackUri(familyId: string): Promise<string | null> {
+    await this.initializeSpotifyApi(familyId);
+    const result = await this.executeWithTokenRefresh(
+      () => this.sdkSpotify.player.getCurrentlyPlayingTrack(),
+      familyId,
+    );
+    return result['item']['uri'];
   }
 
-  async playTrack(trackUri: string, deviceId?: string) {
-    try {
-      await this.sdkSpotify.player.startResumePlayback(deviceId, undefined, [trackUri]);
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        await this.playTrack(trackUri, deviceId);
-      }
-      throw error;
-    }
+  async getSongName(familyId: string, trackUri: string): Promise<string> {
+    await this.initializeSpotifyApi(familyId);
+    const track = await this.sdkSpotify.tracks.get(trackUri);
+    return track.name;
   }
 
-  async addToQueue(trackUri: string) {
-    try {
-      await this.sdkSpotify.player.addItemToPlaybackQueue(trackUri);
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        await this.addToQueue(trackUri);
-      }
-      throw error;
-    }
+  async getArtists(familyId: string, trackUri: string): Promise<string[]> {
+    await this.initializeSpotifyApi(familyId);
+    const track = await this.sdkSpotify.tracks.get(trackUri);
+    console.log('track', track);
+    return track.artists.map((artist) => artist.name);
   }
 
-  async play(deviceId?: string) {
-    try {
-      await this.sdkSpotify.player.startResumePlayback(deviceId);
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        await this.play(deviceId);
+  async getSpotifyDeviceId(familyId: string): Promise<string | null> {
+    await this.initializeSpotifyApi(familyId);
+    const devices = await this.executeWithTokenRefresh(() => this.sdkSpotify.player.getAvailableDevices(), familyId);
+    console.log('[getSpotifyDeviceId] devices: ', devices);
+    for (const device of devices.devices) {
+      if (device.name == 'PiHome') {
+        return device.id;
       }
-      throw error;
     }
-  }
-
-  async pause(deviceId?: string) {
-    try {
-      await this.sdkSpotify.player.pausePlayback(deviceId);
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        await this.pause(deviceId);
-      }
-      throw error;
-    }
-  }
-
-  async next(deviceId?: string) {
-    try {
-      await this.sdkSpotify.player.skipToNext(deviceId);
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        await this.next(deviceId);
-      }
-      throw error;
-    }
-  }
-
-  async previous(deviceId?: string) {
-    try {
-      await this.sdkSpotify.player.skipToPrevious(deviceId);
-    } catch (error) {
-      if (error.message?.includes('Bad or expired token')) {
-        await this.previous(deviceId);
-      }
-      throw error;
-    }
+    return null;
   }
 
   async refreshAccessToken(

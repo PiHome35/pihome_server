@@ -12,6 +12,7 @@ import { PaginationDto } from '../models/chat/pagination.model';
 import { User } from '@prisma/client';
 import { Inject, Logger } from '@nestjs/common';
 import { Public } from 'src/auth/decorators/public.decorator';
+import { ChatDeletedDto } from '../models/chat/chat-deleted.model';
 
 @Resolver('Chat')
 export class ChatResolver {
@@ -27,7 +28,8 @@ export class ChatResolver {
     @Args('familyId') familyId: string,
     @Args('pagination', { nullable: true }) pagination?: PaginationDto,
   ): Promise<ChatDto[]> {
-    return this.chatService.getAllChatsWithFamilyId(familyId, pagination);
+    console.log('getAllChat');
+    return this.chatService.getAllChats(familyId, pagination);
   }
 
   @Query(() => [MessageDto])
@@ -41,8 +43,11 @@ export class ChatResolver {
 
   @Mutation(() => ChatDto)
   @UseGuards(GqlAuthGuard)
-  async createNewChat(@Args('familyId') familyId: string, @CurrentClient() user: User): Promise<ChatDto> {
-    const newChat = await this.chatService.createChat(familyId);
+  async createNewChat(
+    @Args('familyId') familyId: string,
+    @Args('name', { nullable: true }) name?: string,
+  ): Promise<ChatDto> {
+    const newChat = await this.chatService.createChat(familyId, name);
     console.log('newChat: ', newChat);
     this.pubSub.publish('chatCreated', { chatCreated: newChat });
     return newChat;
@@ -67,6 +72,29 @@ export class ChatResolver {
     const messageAI = await this.chatService.addAiResponse(chatId, content, '1234');
     await this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageAI });
     return messageDto;
+  }
+
+  @Mutation(() => ChatDeletedDto)
+  @UseGuards(GqlAuthGuard)
+  async deleteChat(@Args('chatId') chatId: string): Promise<ChatDeletedDto> {
+    try {
+      const deletedChatId = await this.chatService.deleteChat(chatId);
+
+      // Notify subscribers about the deletion
+      await this.pubSub.publish('chatDeleted', {
+        chatDeleted: {
+          chatId: deletedChatId,
+        },
+      });
+
+      return { chatId: deletedChatId };
+    } catch (error) {
+      this.logger.error(`Failed to delete chat ${chatId}:`, error);
+      if (error.message === 'Chat not found') {
+        throw new Error('Chat not found');
+      }
+      throw new Error('Failed to delete chat');
+    }
   }
 
   // @Public()
@@ -94,5 +122,13 @@ export class ChatResolver {
   @UseGuards(GqlAuthGuard)
   async getDeviceChat(@Args('deviceId') deviceId: string): Promise<ChatDto> {
     return this.chatService.getDeviceChat(deviceId);
+  }
+
+  @Public()
+  @Subscription(() => ChatDeletedDto, {
+    filter: (payload, variables) => !variables.familyId || payload.chatDeleted.familyId === variables.familyId,
+  })
+  chatDeleted(@Args('familyId', { nullable: true }) familyId?: string) {
+    return this.pubSub.asyncIterableIterator('chatDeleted');
   }
 }
