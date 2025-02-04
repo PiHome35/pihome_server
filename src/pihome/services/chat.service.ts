@@ -11,12 +11,17 @@ import { Device } from '@prisma/client';
 
 import { AgentService } from 'src/agent/agent.service';
 import { ModelAIName } from 'src/agent/constants/model';
+import { FamiliesService } from './families.service';
+import { ChatModelsService } from './chat-models.service';
+import { ChatModelKey } from '../constants/chat-model.constant';
 
 @Injectable()
 export class ChatService {
   constructor(
     private readonly mongoService: MongoService,
     private readonly agentService: AgentService,
+    private readonly familiesService: FamiliesService,
+    private readonly chatModelsService: ChatModelsService,
   ) {}
   private async updateChatLatestMessage(message: Message): Promise<void> {
     const db = this.mongoService.getDb();
@@ -136,24 +141,46 @@ export class ChatService {
     return userMessageDto;
   }
 
-  async addAiResponse(chatId: string, userMessageContent: string, chatModelId: string): Promise<MessageDto> {
+  async addAiResponse(chatId: string, userMessageContent: string, userId: string): Promise<MessageDto> {
     try {
       const db = this.mongoService.getDb();
       const chat = await db.collection<Chat>('chats').findOne({ _id: new ObjectId(chatId) });
       if (!chat) {
         throw new Error('Chat not found');
       }
-      const aiId: string = 'cb99a5c3-651e-4958-bf41-6c8f2d7ca40c';
       const familyId: string = chat.familyId;
-
+      const family = await this.familiesService.getFamily(familyId);
+      const chatModelId = family.chatModelId;
       let aiResponseText: string;
+      let modelName: ModelAIName;
+      const chatModel = await this.chatModelsService.getChatModel(chatModelId);
+      if (chatModel.key == ChatModelKey.DEEPSEEK_R1) {
+        modelName = ModelAIName.DEEP_SEEK;
+      } else if (chatModel.key == ChatModelKey.GEMINI_1_5_FLASH) {
+        modelName = ModelAIName.GEMINI_FLASH;
+      } else if (chatModel.key == ChatModelKey.GEMINI_1_5_PRO) {
+        modelName = ModelAIName.GEMINI_PRO;
+      } else if (chatModel.key == ChatModelKey.LLAMA_3_3_70B_INSTRUCT) {
+        modelName = ModelAIName.LLAMA_3_3_70B;
+      } else if (chatModel.key == ChatModelKey.GPT_4O) {
+        modelName = ModelAIName.OPENAI_GPT_4O;
+      } else if (chatModel.key == ChatModelKey.GPT_4O_MINI) {
+        modelName = ModelAIName.OPENAI_GPT_4O_MINI;
+      }
       try {
-        aiResponseText = await this.agentService.processMessage(
+        aiResponseText = await this.agentService.processMessageWithLangGraph(
           userMessageContent,
           familyId,
+          userId,
           chatId,
-          ModelAIName.GEMINI_FLASH,
+          modelName,
         );
+        // aiResponseText = await this.agentService.processMessageWithMultiAgent(
+        //   userMessageContent,
+        //   familyId,
+        //   chatId,
+        //   modelName,
+        // );
       } catch (aiError) {
         console.error('AI Processing Error:', aiError);
         aiResponseText = "I'm sorry, I'm having trouble processing your message right now.";
@@ -161,7 +188,7 @@ export class ChatService {
 
       const aiMessage: NewMessageInput = {
         chatId,
-        senderId: aiId,
+        senderId: chatModelId,
         content: aiResponseText,
       };
 

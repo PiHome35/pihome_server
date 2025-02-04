@@ -69,7 +69,7 @@ export class ChatResolver {
     const messageDto = await this.chatService.addMessage(newMessage);
     await this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageDto });
 
-    const messageAI = await this.chatService.addAiResponse(chatId, content, '1234');
+    const messageAI = await this.chatService.addAiResponse(chatId, content, user.sub);
     await this.pubSub.publish(`messageAdded-${chatId}`, { messageAdded: messageAI });
     return messageDto;
   }

@@ -9,4 +9,8 @@ export class ChatModelsService {
   async listChatModels(): Promise<ChatModel[]> {
     return this.prisma.chatModel.findMany();
   }
+
+  async getChatModel(chatModelId: string): Promise<ChatModel> {
+    return this.prisma.chatModel.findUnique({ where: { id: chatModelId } });
+  }
 }

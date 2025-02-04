@@ -22,6 +22,18 @@ async function main() {
           key: 'gemini-1.5-flash',
           name: 'Gemini 1.5 Flash',
         },
+        {
+          key: 'gemini-1.5-pro',
+          name: 'Gemini 1.5 Pro',
+        },
+        {
+          key: 'deepseek-r1',
+          name: 'DeepSeek R1',
+        },
+        {
+          key: 'llama-3.3-70b-instruct',
+          name: 'Llama 3.3 70B Instruct',
+        },
       ],
       skipDuplicates: true,
     });

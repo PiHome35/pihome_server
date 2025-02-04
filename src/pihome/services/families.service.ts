@@ -67,17 +67,23 @@ export class FamiliesService {
   }
 
   async updateFamily(familyId: string, name?: string, chatModelKey?: ChatModelKey): Promise<Family> {
+    console.log('chatModelKey', chatModelKey);
     const family = await this.prisma.family.findUnique({ where: { id: familyId } });
     if (!family) {
       throw new NotFoundException('Family not found');
     }
-    const chatModel = await this.prisma.chatModel.findUnique({ where: { key: chatModelKey } });
+    const familyName = name ?? family.name;
+    const chatModel = await this.prisma.chatModel.findUnique({
+      where: {
+        key: chatModelKey,
+      },
+    });
     if (!chatModel) {
       throw new NotFoundException('Chat model not found');
     }
     const updatedFamily = await this.prisma.family.update({
       where: { id: familyId },
-      data: { name, chatModelId: chatModel.id },
+      data: { name: familyName, chatModelId: chatModel.id },
     });
     return updatedFamily;
   }

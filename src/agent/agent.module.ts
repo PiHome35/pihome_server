@@ -9,9 +9,10 @@ import { SpotifyModule } from 'src/spotify/spotify.module';
 import { SpotifyConnectionsService } from 'src/pihome/services/spotify-connections.service';
 import { SpotifyTool } from './tools/spotify.tool';
 import { AgentService } from './agent.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, HttpModule, SpotifyModule],
+  imports: [ConfigModule, DatabaseModule, HttpModule, SpotifyModule, CacheModule.register()],
   providers: [AgentService, NoteTool, SpotifyService, UsersService, SpotifyConnectionsService, SpotifyTool, NoteTool],
   exports: [AgentService, NoteTool, SpotifyService, UsersService, SpotifyConnectionsService, SpotifyTool, NoteTool],
 })

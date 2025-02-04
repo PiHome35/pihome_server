@@ -10,6 +10,7 @@ import { DatabaseModule } from './database/database.module';
 import { SpotifyModule } from './spotify/spotify.module';
 import { PubSubModule } from './pub-sub/pub-sub.module';
 import { AgentModule } from './agent/agent.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -23,6 +24,10 @@ import { AgentModule } from './agent/agent.module';
     SpotifyModule,
     PubSubModule,
     AgentModule,
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 3600000, // 1 hour in milliseconds
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

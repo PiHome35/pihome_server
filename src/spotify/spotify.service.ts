@@ -49,6 +49,7 @@ export class SpotifyService {
 
   async initializeSpotifyApi(familyId: string): Promise<void> {
     const spotifyConnection = await this.findTokenByFamilyId(familyId);
+    console.log('[initializeSpotifyApi] spotifyConnection: ', spotifyConnection);
     if (this.isTokenExpired(spotifyConnection.issuedAt)) {
       const newToken = await this.refreshAccessToken(
         spotifyConnection.refreshToken,
@@ -114,9 +115,19 @@ export class SpotifyService {
     return playbackState?.is_playing ?? false;
   }
 
-  async getCurrentQueue(familyId: string) {
+  async getCurrentQueue(familyId: string): Promise<QueueResponse> {
     await this.initializeSpotifyApi(familyId);
-    return this.executeWithTokenRefresh(() => this.sdkSpotify.player.getUsersQueue(), familyId);
+    const queueData = await this.executeWithTokenRefresh(() => this.sdkSpotify.player.getUsersQueue(), familyId);
+
+    const formatTrack = (track: any): QueueItem => ({
+      name: track.name,
+      artists: track.artists.map((artist) => artist.name),
+    });
+
+    return {
+      currentlyPlaying: queueData.currently_playing ? formatTrack(queueData.currently_playing) : null,
+      queue: queueData.queue.map((track) => formatTrack(track)),
+    };
   }
 
   async getAvailableDevices(familyId: string): Promise<SpotifyDeviceDto[]> {
@@ -142,14 +153,34 @@ export class SpotifyService {
   }
 
   async queueTrack(familyId: string, trackUri: string) {
-    await this.initializeSpotifyApi(familyId);
-    await this.executeWithTokenRefresh(() => this.sdkSpotify.player.addItemToPlaybackQueue(trackUri), familyId);
+    try {
+      await this.initializeSpotifyApi(familyId);
+      await this.executeWithTokenRefresh(() => this.sdkSpotify.player.addItemToPlaybackQueue(trackUri), familyId);
+      return { success: true };
+    } catch (error) {
+      console.error('Error adding track to queue:', error);
+      if (error.message?.includes('NO_ACTIVE_DEVICE')) {
+        throw new Error('No active device found. Please make sure Spotify is playing on a device.');
+      } else if (error.message?.includes('PREMIUM_REQUIRED')) {
+        throw new Error('This feature requires a Spotify Premium subscription.');
+      }
+      throw new Error('Failed to add track to queue. Please try again.');
+    }
   }
 
-  async seeQueue(familyId: string) {
+  async seeQueue(familyId: string): Promise<QueueResponse> {
     await this.initializeSpotifyApi(familyId);
-    const queue = await this.executeWithTokenRefresh(() => this.sdkSpotify.player.getUsersQueue(), familyId);
-    console.log('queue', queue);
+    const queueData = await this.executeWithTokenRefresh(() => this.sdkSpotify.player.getUsersQueue(), familyId);
+
+    const formatTrack = (track: any): QueueItem => ({
+      name: track.name,
+      artists: track.artists.map((artist) => artist.name),
+    });
+
+    return {
+      currentlyPlaying: queueData.currently_playing ? formatTrack(queueData.currently_playing) : null,
+      queue: queueData.queue.map((track) => formatTrack(track)),
+    };
   }
 
   async play(familyId: string, deviceId?: string) {
@@ -165,9 +196,8 @@ export class SpotifyService {
     }
   }
 
-  async pause(familyId: string, deviceId?: string) {
+  async pause(familyId: string, deviceId: string) {
     await this.initializeSpotifyApi(familyId);
-    // const contextUri = await this.getCurrentlyPlayingTrackUri(familyId);
     try {
       const response = await this.executeWithTokenRefresh(
         () => this.sdkSpotify.player.pausePlayback(deviceId),
@@ -259,6 +289,49 @@ export class SpotifyService {
         familyId,
       },
     });
+
+    if (!spotifyConnection) {
+      throw new UnauthorizedException('No Spotify connection found for this family ID. Please connect Spotify first.');
+    }
+
     return spotifyConnection;
+  }
+
+  async setVolume(familyId: string, volumePercent: number, deviceId?: string) {
+    await this.initializeSpotifyApi(familyId);
+    // Ensure volume is between 0 and 100
+    const volume = Math.max(0, Math.min(100, volumePercent));
+    await this.executeWithTokenRefresh(() => this.sdkSpotify.player.setPlaybackVolume(volume, deviceId), familyId);
+  }
+
+  async transferPlayback(familyId: string, deviceId: string, startPlayback: boolean = false): Promise<void> {
+    await this.initializeSpotifyApi(familyId);
+    await this.executeWithTokenRefresh(async () => {
+      const response = await this.sdkSpotify.player.transferPlayback(
+        [deviceId], // API accepts array but only supports single device currently
+        startPlayback,
+      );
+      console.log('[transferPlayback] response: ', response);
+      return response;
+    }, familyId);
+  }
+
+  async searchTracks(familyId: string, query: string) {
+    await this.initializeSpotifyApi(familyId);
+    const response = await this.executeWithTokenRefresh(() => this.sdkSpotify.search(query, ['track']), familyId);
+
+    if (!response.tracks?.items.length) {
+      return [];
+    }
+
+    return response.tracks.items.map((track) => ({
+      name: track.name,
+      artists: track.artists.map((artist) => artist.name),
+      album: track.album.name,
+      duration_ms: track.duration_ms,
+      popularity: track.popularity,
+      release_date: track.album.release_date,
+      uri: track.uri,
+    }));
   }
 }
