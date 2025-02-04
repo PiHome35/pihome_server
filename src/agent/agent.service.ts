@@ -197,8 +197,15 @@ export class AgentService {
   - Confirm actions related to audio control
   - Use natural, conversational language
   - Keep responses brief and focused on speaker-related tasks
+  
+4. Note Taking:
+  - Save notes and reminders
+  - Search for notes by category or content
+  - Update existing notes
+  - Create new notes with tags and categories
+  - create new categories/tags if not exist
 
-4. Error Handling:
+5. Error Handling:
   - Clearly communicate when actions cannot be completed
   - Suggest alternatives when requested actions are not possible
   - Provide troubleshooting steps when appropriate
